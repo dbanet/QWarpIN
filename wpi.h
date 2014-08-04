@@ -1,8 +1,8 @@
 #ifndef WPI_H
 #define WPI_H
 
-//class WArchiveInterfaceFactory;
 #include <QMainWindow>
+#include "warchive.h"
 
 namespace Ui {
 class WPI;
@@ -14,8 +14,11 @@ class WPI : public QMainWindow
 
 public:
     explicit WPI(QWidget *parent = 0);
-//    WArchiveInterfaceFactory *archiveInterfacesFactory;
+    WArchive *arc;
     ~WPI();
+
+private slots:
+    void on_actionTest_triggered();
 
 private:
     Ui::WPI *ui;

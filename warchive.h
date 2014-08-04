@@ -15,6 +15,7 @@ public:
     explicit WArchive(QFile *archive,QObject *parent = 0);
     QString name();
     QFile *file();
+    void test();
 
 private:
     QPointer<WAbstractArchiveInterface> interface;

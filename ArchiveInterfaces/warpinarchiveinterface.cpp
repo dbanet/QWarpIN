@@ -169,3 +169,19 @@ qint64 WarpinArchiveInterface::readExtendedData(qint64 extendedOffset){
     this->archive->seek(savedOffset);
     return extendedOffset+sizeof(this->extendedData);
 }
+
+void WarpinArchiveInterface::readArcFiles(){
+    auto test=new WFileSystemNode(new QFile());
+    auto test2=new WFileSystemNode(new QFile("test"));
+    QList<WFileSystemNode*> files;
+    files<<test<<test2;
+
+    auto root=new WFileSystemNode(new QDir(),files);
+    this->files=new WFileSystemTree(root);
+}
+
+WFileSystemTree* WarpinArchiveInterface::getFiles(){
+    if(this->files.isNull())
+        this->readArcFiles();
+    return this->files;
+}

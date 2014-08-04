@@ -1,4 +1,5 @@
 #include "warchive.h"
+#include "filesystemtree.h"
 
 WArchive::WArchive(QFile *archiveFile,QObject *parent) :
     QObject(parent){
@@ -25,6 +26,9 @@ WArchive::WArchive(QFile *archiveFile,QObject *parent) :
 QString WArchive::name(){
     return this->interface->arcName();
 }
-QFile *WArchive::file(){
+QFile* WArchive::file(){
     return this->interface->arcFile();
+}
+void WArchive::test(){
+
 }

@@ -4,6 +4,7 @@
 #include <QObject>
 #include <QFile>
 #include "../exceptions.h"
+#include "../filesystemtree.h"
 
 class WAbstractArchiveInterface : public QObject
 {
@@ -12,6 +13,7 @@ public:
     virtual QString id() const=0;
     virtual QString arcName() const=0;
     virtual QFile* arcFile() const=0;
+    virtual WFileSystemTree* getFiles()=0;
 
 signals:
 

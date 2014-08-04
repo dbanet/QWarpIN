@@ -36,6 +36,7 @@ public:
     QString id() const;
     QString arcName() const;
     QFile* arcFile() const;
+    WFileSystemTree* getFiles();
 
 private:
     QFile           *archive;
@@ -51,6 +52,10 @@ private:
     qint64          readExtendedData(qint64);
     bool            verifyArcHeader();
     qint64          readScript(qint64);
+
+    void            readArcFiles();
+    QPointer<WFileSystemTree>
+                    files;
 };
 
 #endif // WARPINARCHIVEINTERFACE_H
