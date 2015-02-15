@@ -14,6 +14,8 @@ WarpinArchiveInterface::WarpinArchiveInterface(QFile *archive) :
     qDebug()<<"Minimum WarpIN version:"<<this->ArcHeader.wi_revision_needed;
     qDebug()<<"Number of packages in the archive:"<<this->ArcHeader.sPackages;
     qDebug()<<"Size of script:"<<this->ArcHeader.usScriptOrig<<"="<<this->script.size();
+    qDebug()<<this->ArcHeader.sPackages;
+    qDebug()<<this->packHeadersList.at(0)->name;
 }
 
 QString WarpinArchiveInterface::id() const{
@@ -29,7 +31,7 @@ QFile* WarpinArchiveInterface::arcFile() const{
 }
 
 void WarpinArchiveInterface::readArcHeaders(){
-    qint64 ext4HeaderOffset,scriptOffset,extendedDataOffset,archiveOffset;
+    qint64 ext4HeaderOffset,scriptOffset,extendedDataOffset,packHeadersOffset,archiveOffset;
     /* trying to read a header in the tail (lolwut btw?) */
     /* only for archives with an executable stub in them */
     if(!~(ext4HeaderOffset=this->readTailHeader())) // the tail is not a valid header, searching front (plain .wpi)
@@ -43,7 +45,7 @@ void WarpinArchiveInterface::readArcHeaders(){
         scriptOffset=ext4HeaderOffset; // no extended headers, the script starts just after the header
     else if(this->ArcHeader.wi_revision_needed==4){
         this->readExt4Header(ext4HeaderOffset); // reading extended headers of version 4
-        // this archive is extended, the script start after the extended area and the stub
+        // this archive is extended, the script starts after the extended area and the stub
         scriptOffset=sizeof(WIArcHeader)+this->ArcExt4Header.cbSize+this->ArcExt4Header.stubSize;
     }
     else
@@ -52,7 +54,11 @@ void WarpinArchiveInterface::readArcHeaders(){
     if(!~(extendedDataOffset=this->readScript(scriptOffset)))
         throw new E_WPIAI_ErrorDecompressingInstallationScript;
 
-    this->readExtendedData(extendedDataOffset);
+    if(!~(packHeadersOffset=this->readExtendedData(extendedDataOffset)))
+        throw new E_WPIAI_ErrorReadingExtendedData;
+
+    this->readPackageHeaders(packHeadersOffset);
+
 }
 
 bool WarpinArchiveInterface::verifyArcHeader(){
@@ -168,6 +174,27 @@ qint64 WarpinArchiveInterface::readExtendedData(qint64 extendedOffset){
     );
     this->archive->seek(savedOffset);
     return extendedOffset+sizeof(this->extendedData);
+}
+
+qint64 WarpinArchiveInterface::readPackageHeaders(qint64 packHeadersOffset){
+    qint64 savedOffset=this->archive->pos();
+    this->archive->seek(packHeadersOffset);
+
+    int packagesNumber=this->ArcHeader.sPackages;
+    if(packagesNumber<0)
+        throw new E_WPIAI_InvalidAmountOfPackagesInArchive;
+
+    while(packagesNumber--){
+        WIPackHeader *packHeader=new WIPackHeader;
+        this->archive->read(
+            (char*)packHeader,
+            sizeof(WIPackHeader)
+        );
+        this->packHeadersList<<packHeader;
+    }
+
+    this->archive->seek(savedOffset);
+    return 0;
 }
 
 void WarpinArchiveInterface::readArcFiles(){

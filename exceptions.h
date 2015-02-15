@@ -20,6 +20,10 @@ E_EXC(E_WPIAI_UnsupportedArchive,
       "A WarpIN archive has requested an unknown WarpIN version (probably a newer one), so WarpinArchiveInterface is unable to handle it.");
 E_EXC(E_WPIAI_ErrorDecompressingInstallationScript,
       "WarpinArchiveInterface has failed to unbzip2 the installation script. It is probably corrupted.");
+E_EXC(E_WPIAI_ErrorReadingExtendedData,
+      "WarpinArchiveInterface has failed to read the Extended Data information stored in the archive. It is probably corrupted.");
+E_EXC(E_WPIAI_InvalidAmountOfPackagesInArchive,
+      "A WarpIN archive claims to have invalid amount of packages in it. It is probably corrupted.")
 
 #undef E_DESCR
 #endif // EXCEPTIONS_H

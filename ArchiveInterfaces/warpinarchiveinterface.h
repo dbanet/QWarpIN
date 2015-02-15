@@ -3,6 +3,7 @@
 #include "wabstractarchiveinterface.h"
 
 #define MAXPATHLEN 256
+
 struct WIArcHeader{
 /* 0x0000: */  uchar   v1, v2, v3, v4     ; // archive verification
 /* 0x0004: */  short   wi_revision_needed ; // minimum WarpIN version required
@@ -17,6 +18,7 @@ struct WIArcHeader{
 /* 0x020E: */  ushort  usScriptCompr      ; // compressed size of installation script
 /* 0x0210: */  long    lExtended          ; // extended data
 };
+
 struct WIArcExt4Header{
     long  cbSize                          ; // size of extended header
     long  stubSize                        ; // size of stub
@@ -24,10 +26,52 @@ struct WIArcExt4Header{
           lReserved4,lReserved5,lReserved6,
           lReserved7,lReserved8           ;
 };
-const unsigned char WI_VERIFY1 = 0x77; // the first four
-const unsigned char WI_VERIFY2 = 0x04; // bytes of the
-const unsigned char WI_VERIFY3 = 0x02; // archive header
-const unsigned char WI_VERIFY4 = 0xBE; // (WIArcHeader.v1, .v2, .v3, .v4)
+
+/*!
+ * A structure representing a file in an archive.
+ * This is stored in binary in the archive.
+ *
+ * In the archive, a WIFileHeader comes directly
+ * before the actual file data. To extract files
+ * for a package, we must find the first WIFileHeader
+ * for a package (which is stored in WIPackHeader.pos)
+ * and get the data which comes directly afterwards.
+ *
+ * The next WIFileHeader is then at after the file
+ * data, whose size is stored in the "compsize" member.
+ */
+struct WIFileHeader{
+    ushort magic           ; // must be WIFH_MAGIC for security
+    short  checksum        ; // header checksum
+    short  method          ; // compression method used  (0=stored (use WIArchive::Extract); 1=compressed (use WIArchive::Expand))
+    short  package         ; // which package it belongs to
+    long   origsize        ; // size of file (original)
+    long   compsize        ; // size of file (compressed)
+    ulong  crc             ; // file CRC checksum
+    char   name[MAXPATHLEN]; // filename (*UM#3)
+    ulong  lastwrite       ; // file's last write date/time (req. time.h) (*UM#3)
+    ulong  creation        ; // file's creation date/time (req. time.h) (*UM#3)
+    char   extended        ; // size of extended information (if any)
+};
+
+/*!
+ * A structure representing a package in an archive.
+ * This is stored in binary in the archive.
+ */
+struct WIPackHeader{
+    short number  ; // Package number
+    short files   ; // Number of files in package
+    long  pos     ; // Position of first WIFileHeader for this package in archive
+    long  origsize; // Size of package (original)
+    long  compsize; // Size of package (compressed)
+    char  name[32]; // Name of package
+};
+
+const unsigned char  WI_VERIFY1=0x77  ; // the first four
+const unsigned char  WI_VERIFY2=0x04  ; // bytes of the
+const unsigned char  WI_VERIFY3=0x02  ; // archive header
+const unsigned char  WI_VERIFY4=0xBE  ; // (WIArcHeader.v1, .v2, .v3, .v4)
+const unsigned short WIFH_MAGIC=0xF012; // any value for "magic" in file header
 
 class WarpinArchiveInterface : public WAbstractArchiveInterface
 {
@@ -39,11 +83,12 @@ public:
     WFileSystemTree* getFiles();
 
 private:
-    QFile           *archive;
-    WIArcHeader     ArcHeader;
-    WIArcExt4Header ArcExt4Header;
-    char            *extendedData;
-    QString         script;
+    QFile                *archive;
+    WIArcHeader          ArcHeader;
+    WIArcExt4Header      ArcExt4Header;
+    char                 *extendedData;
+    QString              script;
+    QList<WIPackHeader*> packHeadersList;
 
     void            readArcHeaders();
     qint64          readTailHeader();
@@ -52,6 +97,7 @@ private:
     qint64          readExtendedData(qint64);
     bool            verifyArcHeader();
     qint64          readScript(qint64);
+    qint64          readPackageHeaders(qint64);
 
     void            readArcFiles();
     QPointer<WFileSystemTree>
