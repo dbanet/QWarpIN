@@ -23,7 +23,13 @@ E_EXC(E_WPIAI_ErrorDecompressingInstallationScript,
 E_EXC(E_WPIAI_ErrorReadingExtendedData,
       "WarpinArchiveInterface has failed to read the Extended Data information stored in the archive. It is probably corrupted.");
 E_EXC(E_WPIAI_InvalidAmountOfPackagesInArchive,
-      "A WarpIN archive claims to have invalid amount of packages in it. It is probably corrupted.")
+      "A WarpIN archive claims to have invalid amount of packages in it. It is probably corrupted.");
+E_EXC(E_WPIAI_InvalidAmountOfFilesInPackage,
+      "A WarpIN archive claims to have invalid amount of files in one of its packages. It is probably corrupted.");
+E_EXC(E_WPIAI_MaximumPathLengthExceededWhileReadingFiles,
+      "A WarpIN archive contains a file with path length greater than the maximum length defined at compiletime, MAXPATH");
+E_EXC(E_WPIAI_FileBelongsToUndefinedPackage,
+      "A WarpIN archive contains a file claimed to belong to a package never defined in the archive. The archive is probably corrupt.");
 
 #undef E_DESCR
 #endif // EXCEPTIONS_H

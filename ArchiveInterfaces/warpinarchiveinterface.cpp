@@ -1,6 +1,6 @@
 #include "warpinarchiveinterface.h"
+#include "globals.h"
 #include <bzlib.h>
-#include <QDebug>
 
 WarpinArchiveInterface::WarpinArchiveInterface(QFile *archive) :
     archive(archive){
@@ -14,8 +14,18 @@ WarpinArchiveInterface::WarpinArchiveInterface(QFile *archive) :
     qDebug()<<"Minimum WarpIN version:"<<this->ArcHeader.wi_revision_needed;
     qDebug()<<"Number of packages in the archive:"<<this->ArcHeader.sPackages;
     qDebug()<<"Size of script:"<<this->ArcHeader.usScriptOrig<<"="<<this->script.size();
-    qDebug()<<this->ArcHeader.sPackages;
-    qDebug()<<this->packHeadersList.at(0)->name;
+    qDebug()<<"Number of packages: "<<this->packHeadersList.length();
+    for(int i=0;i<this->packHeadersList.length();++i)
+        qDebug(QString(
+            QString()
+                + "Package number "  + QString::number(i)                                  + ": "
+                + "name -> \""       + this->packHeadersList[i]->name                      + "\"; "
+                + "files -> \""      + QString::number(this->packHeadersList[i]->files)    + "\"; "
+                + "number -> \""     + QString::number(this->packHeadersList[i]->number)   + "\"; "
+                + "size orig. -> \"" + QString::number(this->packHeadersList[i]->origsize) + "\"; "
+                + "size comp. -> \"" + QString::number(this->packHeadersList[i]->compsize) + "\"; "
+        ).toStdString().c_str());
+    qDebug(QString("Archive filesystem: "+this->files->toJSON()).toStdString().c_str());
 }
 
 QString WarpinArchiveInterface::id() const{
@@ -54,10 +64,14 @@ void WarpinArchiveInterface::readArcHeaders(){
     if(!~(extendedDataOffset=this->readScript(scriptOffset)))
         throw new E_WPIAI_ErrorDecompressingInstallationScript;
 
-    if(!~(packHeadersOffset=this->readExtendedData(extendedDataOffset)))
-        throw new E_WPIAI_ErrorReadingExtendedData;
+    if(/* we have extended header data */this->ArcHeader.lExtended>0){
+        if(!~(packHeadersOffset=this->readExtendedData(extendedDataOffset)))
+            throw new E_WPIAI_ErrorReadingExtendedData;
+    } else packHeadersOffset=extendedDataOffset;
 
     this->readPackageHeaders(packHeadersOffset);
+
+    this->createFileStructure();
 
 }
 
@@ -197,18 +211,80 @@ qint64 WarpinArchiveInterface::readPackageHeaders(qint64 packHeadersOffset){
     return 0;
 }
 
-void WarpinArchiveInterface::readArcFiles(){
-    auto test=new WFileSystemNode(new QFile());
-    auto test2=new WFileSystemNode(new QFile("test"));
-    QList<WFileSystemNode*> files;
-    files<<test<<test2;
+void WarpinArchiveInterface::createFileStructure(){
+    QList<WIFileHeader> fileList;
+    for(auto i=this->packHeadersList.begin();i!=this->packHeadersList.end();++i){
+        qint64 filesNumber=(*i)->files;
+        if(filesNumber<0)
+            throw new E_WPIAI_InvalidAmountOfFilesInPackage;
 
-    auto root=new WFileSystemNode(new QDir(),files);
-    this->files=new WFileSystemTree(root);
+        qint64 curpos=(*i)->pos;
+        while(filesNumber--){
+            this->archive->seek(curpos);
+
+            WIFileHeader fileHeader;
+            this->archive->read(
+                (char*)&fileHeader,
+                sizeof(WIFileHeader)
+            );
+
+            if(QString(fileHeader.name).size()>MAXPATHLEN)
+                throw new E_WPIAI_MaximumPathLengthExceededWhileReadingFiles;
+
+            fileList<<fileHeader;
+
+            curpos+=sizeof(WIFileHeader)+fileHeader.compsize-3; // I don't know why -3. It just doesn't match otherwise. ~~dbanet
+        }
+    }
+
+    /* parsing fileList into fileSystemTree */
+    WFileSystemTree *root=new WFileSystemTree(new WFileSystemNode(new QDir()));
+    for(auto i=fileList.begin();i!=fileList.end();++i){
+        QString absoluteFilePath=i->name;
+        QString filePackageName;
+
+        /* trying to identify which package does the given file belong to */
+        bool foundPackage=false;
+        foreach(auto package,packHeadersList)
+            if(package->number==i->package){
+                filePackageName=package->name;
+                foundPackage=true;
+            }
+        if(!foundPackage)
+            throw new E_WPIAI_FileBelongsToUndefinedPackage;
+
+        root->addChild(parseFilePathToFSNode(absoluteFilePath,filePackageName));
+    }
+    files=QPointer<WFileSystemTree>(root);
+}
+
+WFileSystemNode* WarpinArchiveInterface::parseFilePathToFSNode(QString relativeFilePath,QString currentDir){
+    WFileSystemNode *node;
+    if(relativeFilePath.contains('\\'))
+        node=new WFileSystemNode(
+            new QDir(currentDir),
+            (*(new QList<WFileSystemNode*>))<<(
+                parseFilePathToFSNode(
+                    relativeFilePath.section('\\',1),
+                    relativeFilePath.split('\\')[0]
+                )
+            )
+        );
+    else
+        node=new WFileSystemNode(new QDir(currentDir),
+            (*(new QList<WFileSystemNode*>))<<
+                (new WFileSystemNode(new QFile(relativeFilePath)))
+        );
+    return node;
 }
 
 WFileSystemTree* WarpinArchiveInterface::getFiles(){
     if(this->files.isNull())
-        this->readArcFiles();
+        this->createFileStructure();
     return this->files;
+}
+
+WarpinArchiveInterface::~WarpinArchiveInterface(){
+    for(auto i=this->packHeadersList.begin();i!=this->packHeadersList.end();)
+        delete (*i), i=this->packHeadersList.erase(i);
 }

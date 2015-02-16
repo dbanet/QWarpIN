@@ -9,8 +9,22 @@ WFileSystemNode* WFileSystemTree::rootNode(){
     return this->root;
 }
 
-void WFileSystemTree::setRootNode(WFileSystemNode* rootNode){
+void WFileSystemTree::setRootNode(WFileSystemNode *rootNode){
     this->root=rootNode;
+}
+
+void WFileSystemTree::addChild(WFileSystemNode *node){
+    if(this->rootNode()==0)
+        this->setRootNode(node);
+    else
+        this->rootNode()->addChild(node);
+}
+
+QString WFileSystemTree::toJSON(){
+    if(this->rootNode()==0)
+        return "{}";
+    else
+        return "{\"root\":"+this->rootNode()->toJSON()+"}";
 }
 
 WFileSystemTree::~WFileSystemTree(){
@@ -43,6 +57,36 @@ WFileSystemNode::WFileSystemNode(QDir *dir,QObject *parent) :
     QObject(parent),
     dir(dir){
     this->type=WFileSystemTree::directory;
+}
+
+void WFileSystemNode::addChild(WFileSystemNode *node){
+    qint64 equinamedChildId=-1; // have none
+    for(int i=0;i<this->children.length();++i)
+        if(this->children[i]->getNodeName()==node->getNodeName()){
+            equinamedChildId=i;
+            break;
+        }
+
+    if(!~equinamedChildId)
+        this->children<<QPointer<WFileSystemNode>(node);
+    else
+        foreach(WFileSystemNode *childNode,node->children)
+            this->children[equinamedChildId]->addChild(childNode);
+}
+
+QString WFileSystemNode::getNodeName(){
+    if(this->type==WFileSystemTree::directory)
+        return this->dir->dirName();
+    else
+        return this->file->fileName();
+}
+
+QString WFileSystemNode::toJSON(){
+    QString childrenJSON;
+    foreach(WFileSystemNode *child,this->children)
+        childrenJSON+=child->toJSON()+",";
+    childrenJSON.remove(childrenJSON.length()-1,1);
+    return "{\"nodeName\":\""+this->getNodeName()+"\",\"nodeType\":\""+(this->type==WFileSystemTree::directory?"directory":"file")+"\",\"nodeChildren\":["+childrenJSON+"]}";
 }
 
 WFileSystemNode::~WFileSystemNode(){

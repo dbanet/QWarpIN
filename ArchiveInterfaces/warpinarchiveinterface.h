@@ -67,6 +67,15 @@ struct WIPackHeader{
     char  name[32]; // Name of package
 };
 
+/*!
+ * A structure representing a file in an archive.
+ */
+struct WIFile{
+    char  *name  ; // Name of file
+    char  *extra ; // Possible extra information
+    short package; // Which package it belongs to
+};
+
 const unsigned char  WI_VERIFY1=0x77  ; // the first four
 const unsigned char  WI_VERIFY2=0x04  ; // bytes of the
 const unsigned char  WI_VERIFY3=0x02  ; // archive header
@@ -81,27 +90,28 @@ public:
     QString arcName() const;
     QFile* arcFile() const;
     WFileSystemTree* getFiles();
+    ~WarpinArchiveInterface();
 
 private:
-    QFile                *archive;
+    QFile*               archive;
     WIArcHeader          ArcHeader;
     WIArcExt4Header      ArcExt4Header;
-    char                 *extendedData;
+    char*                extendedData;
     QString              script;
     QList<WIPackHeader*> packHeadersList;
 
-    void            readArcHeaders();
-    qint64          readTailHeader();
-    qint64          readFrontHeader();
-    qint64          readExt4Header(qint64);
-    qint64          readExtendedData(qint64);
-    bool            verifyArcHeader();
-    qint64          readScript(qint64);
-    qint64          readPackageHeaders(qint64);
+    void             readArcHeaders();
+    qint64           readTailHeader();
+    qint64           readFrontHeader();
+    qint64           readExt4Header(qint64);
+    qint64           readExtendedData(qint64);
+    bool             verifyArcHeader();
+    qint64           readScript(qint64);
+    qint64           readPackageHeaders(qint64);
 
-    void            readArcFiles();
-    QPointer<WFileSystemTree>
-                    files;
+    void                      createFileStructure();
+    WFileSystemNode*          parseFilePathToFSNode(QString,QString);
+    QPointer<WFileSystemTree> files;
 };
 
 #endif // WARPINARCHIVEINTERFACE_H

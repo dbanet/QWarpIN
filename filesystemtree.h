@@ -20,6 +20,8 @@ public:
     explicit WFileSystemTree(WFileSystemNode *rootNode=0,QObject *parent=0);
     WFileSystemNode* rootNode();
     void setRootNode(WFileSystemNode*);
+    void addChild(WFileSystemNode*);
+    QString toJSON();
     ~WFileSystemTree();
 
 private:
@@ -38,7 +40,10 @@ public:
     WFileSystemTree::types type;
     QDir *dir;
     QFile *file;
+    QString getNodeName();
     QList<QPointer<WFileSystemNode> > children;
+    void addChild(WFileSystemNode*);
+    QString toJSON();
     ~WFileSystemNode();
 
 };
