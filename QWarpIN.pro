@@ -22,7 +22,9 @@ SOURCES += main.cpp\
     ArchiveInterfaces/warpinarchiveinterface.cpp \
     exceptions.cpp \
     warchive.cpp \
-    filesystemtree.cpp
+    WFileSystem/wfilesystemtree.cpp \
+    WFileSystem/wfilesystemnode.cpp \
+    WFileSystem/wfile.cpp
 
 HEADERS  += wpi.h \
     globals.h \
@@ -32,6 +34,9 @@ HEADERS  += wpi.h \
     genericobjectfactory.h \
     exceptions.h \
     warchive.h \
-    filesystemtree.h
+    WFileSystem/wfilesystemtree.h \
+    WFileSystem/wfilesystem.h \
+    WFileSystem/wfilesystemnode.h \
+    WFileSystem/wfile.h
 
 FORMS    += wpi.ui

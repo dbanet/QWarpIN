@@ -1,5 +1,5 @@
 #include "warchive.h"
-#include "filesystemtree.h"
+#include "WFileSystem/wfilesystem.h"
 
 WArchive::WArchive(QFile *archiveFile,QObject *parent) :
     QObject(parent){

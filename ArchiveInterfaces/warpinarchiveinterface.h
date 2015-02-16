@@ -108,9 +108,10 @@ private:
     bool             verifyArcHeader();
     qint64           readScript(qint64);
     qint64           readPackageHeaders(qint64);
+    qint64 static    readFile(char*,qint64,const WFile*);
 
     void                      createFileStructure();
-    WFileSystemNode*          parseFilePathToFSNode(QString,QString);
+    WFileSystemNode*          parseFilePathToFSNode(QString,QString,qint64,qint64,qint64);
     QPointer<WFileSystemTree> files;
 };
 

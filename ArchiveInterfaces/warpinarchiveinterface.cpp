@@ -253,12 +253,12 @@ void WarpinArchiveInterface::createFileStructure(){
         if(!foundPackage)
             throw new E_WPIAI_FileBelongsToUndefinedPackage;
 
-        root->addChild(parseFilePathToFSNode(absoluteFilePath,filePackageName));
+        root->addChild(parseFilePathToFSNode(absoluteFilePath,filePackageName,0,0,0));
     }
     files=QPointer<WFileSystemTree>(root);
 }
 
-WFileSystemNode* WarpinArchiveInterface::parseFilePathToFSNode(QString relativeFilePath,QString currentDir){
+WFileSystemNode* WarpinArchiveInterface::parseFilePathToFSNode(QString relativeFilePath,QString currentDir,qint64 pos,qint64 compsize,qint64 origsize){
     WFileSystemNode *node;
     if(relativeFilePath.contains('\\'))
         node=new WFileSystemNode(
@@ -266,16 +266,28 @@ WFileSystemNode* WarpinArchiveInterface::parseFilePathToFSNode(QString relativeF
             (*(new QList<WFileSystemNode*>))<<(
                 parseFilePathToFSNode(
                     relativeFilePath.section('\\',1),
-                    relativeFilePath.split('\\')[0]
+                    relativeFilePath.split('\\')[0],
+                    pos,compsize,origsize
                 )
             )
         );
-    else
+    else{
+        WFile *file=new WFile(relativeFilePath);
+        file->setSize(origsize);
+        file->setReadDataFn(&WarpinArchiveInterface::readFile);
+        QMap<QString,QVariant> filePositionMap;
+        filePositionMap["pos"]=pos;
+        filePositionMap["compsize"]=compsize;
         node=new WFileSystemNode(new QDir(currentDir),
             (*(new QList<WFileSystemNode*>))<<
-                (new WFileSystemNode(new QFile(relativeFilePath)))
+                (new WFileSystemNode(file,QVariant(filePositionMap)))
         );
+    }
     return node;
+}
+
+qint64 WarpinArchiveInterface::readFile(char *data,qint64 length,const WFile *self){
+
 }
 
 WFileSystemTree* WarpinArchiveInterface::getFiles(){

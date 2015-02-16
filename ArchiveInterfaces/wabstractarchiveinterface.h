@@ -4,7 +4,7 @@
 #include <QObject>
 #include <QFile>
 #include "../exceptions.h"
-#include "../filesystemtree.h"
+#include "../WFileSystem/wfilesystem.h"
 
 class WAbstractArchiveInterface : public QObject
 {
