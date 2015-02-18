@@ -13,6 +13,10 @@ void WFileSystemTree::setRootNode(WFileSystemNode *rootNode){
     this->root=rootNode;
 }
 
+/*!
+ * Basically redirects to WFileSystemNode::captureChild. Please
+ * refer to its documentation, as this function modifies its argument
+ */
 void WFileSystemTree::addChild(WFileSystemNode *node){
     if(this->rootNode()==0)
         this->setRootNode(node);

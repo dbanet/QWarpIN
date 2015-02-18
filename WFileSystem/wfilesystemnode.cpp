@@ -1,37 +1,52 @@
 #include "wfilesystem.h"
 
-WFileSystemNode::WFileSystemNode(QFile *file,QList<WFileSystemNode*> &children,QVariant userData,QObject *parent) :
+WFileSystemNode::WFileSystemNode(QFile *file,QList<WFileSystemNode*> &children,QObject *parent) :
     QObject(parent),
-    file(file),
-    userData(userData){
+    file(file){
     foreach(WFileSystemNode *node,children)
         this->children.append(QPointer<WFileSystemNode>(node));
     this->type=WFileSystem::file;
 }
 
-WFileSystemNode::WFileSystemNode(QDir *dir,QList<WFileSystemNode*> &children,QVariant userData,QObject *parent) :
+WFileSystemNode::WFileSystemNode(QDir *dir,QList<WFileSystemNode*> &children,QObject *parent) :
     QObject(parent),
-    dir(dir),
-    userData(userData){
+    dir(dir){
     foreach(WFileSystemNode *node,children)
         this->children.append(QPointer<WFileSystemNode>(node));
     this->type=WFileSystem::directory;
 }
 
-WFileSystemNode::WFileSystemNode(QFile *file,QVariant userData,QObject *parent) :
+WFileSystemNode::WFileSystemNode(QFile *file,QObject *parent) :
     QObject(parent),
-    file(file),
-    userData(userData){
+    file(file){
     this->type=WFileSystem::file;
 }
 
-WFileSystemNode::WFileSystemNode(QDir *dir,QVariant userData,QObject *parent) :
+WFileSystemNode::WFileSystemNode(QDir *dir,QObject *parent) :
     QObject(parent),
-    dir(dir),
-    userData(userData){
+    dir(dir){
     this->type=WFileSystem::directory;
 }
 
+/*!
+ * Expropriates the given node assigning it as a child, taking care of possible
+ * duplicates, where a child with the same name may already exist.
+ * The given node (at least, by the same address) cannot be henceforth used by
+ * the caller (think of it as the exclusive right to own the given node moves to
+ * this node): if we allow this, then in case of a duplicate, when all the children
+ * of a duplicated node/subnode of the given node get captured as children by this
+ * node's child node with the same name, as of the duplicated node, the duplicated
+ * node/subnode of the given node could have never been addressed by the caller anyway,
+ * as the caller doesn't know which subnode of the given node, or the node itself has
+ * caused duplication, and even if the duplication has taken place at all, so the
+ * duplicated node should be deleted within this function to prevent memory leak.
+ * This routine takes care of the memory and replaces the given pointer with another one,
+ * addressed as this node's child, after the given node has been added as a child (but
+ * it may, of course, happen to be equal, if no duplication has been taken place).
+ * THEREFORE THE GIVEN ADDRESS OF THE NODE BECOMES INVALID: DO NOT USE ANY COPIES OF
+ * THE GIVEN POINTER THAT HAVE BEEN DONE BEFORE THE FUNCTION CALL, OTHERWISE YOU RISK
+ * TO CAUSE AN ACCESS VIOLATION BY READING UNALLOCATED MEMORY
+ */
 void WFileSystemNode::addChild(WFileSystemNode *node){
     qint64 equinamedChildId=-1; // have none
     for(int i=0;i<this->children.length();++i)
@@ -42,9 +57,15 @@ void WFileSystemNode::addChild(WFileSystemNode *node){
 
     if(!~equinamedChildId)
         this->children<<QPointer<WFileSystemNode>(node);
-    else
-        foreach(WFileSystemNode *childNode,node->children)
+    else{
+        auto childrenNodes=node->children;
+        node->children.clear(); // if we don't detach the given node's children from it, then its
+        // destructor will subsequently delete all of them upon the given node's deletion, i.e. now
+        node->deleteLater();
+        foreach(auto childNode,childrenNodes)
             this->children[equinamedChildId]->addChild(childNode);
+        node=this->children[equinamedChildId];
+    }
 }
 
 QString WFileSystemNode::getNodeName(){

@@ -6,6 +6,7 @@
 #include <QFile>
 #include <QDir>
 #include <QVariant>
+#include <QDateTime>
 class WFileSystemTree;
 class WFileSystemNode;
 class WFile;

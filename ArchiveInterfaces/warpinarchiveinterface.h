@@ -3,6 +3,7 @@
 #include "wabstractarchiveinterface.h"
 
 #define MAXPATHLEN 256
+#define DEFAULT_BUFFER_SIZE 1024000
 
 struct WIArcHeader{
 /* 0x0000: */  uchar   v1, v2, v3, v4     ; // archive verification
@@ -93,26 +94,52 @@ public:
     ~WarpinArchiveInterface();
 
 private:
-    QFile*               archive;
-    WIArcHeader          ArcHeader;
-    WIArcExt4Header      ArcExt4Header;
-    char*                extendedData;
-    QString              script;
-    QList<WIPackHeader*> packHeadersList;
+    QFile*                archive;
+    WIArcHeader           ArcHeader;
+    WIArcExt4Header       ArcExt4Header;
+    char*                 extendedData;
+    QString               script;
+    QList<WIPackHeader*>  packHeadersList;
 
-    void             readArcHeaders();
-    qint64           readTailHeader();
-    qint64           readFrontHeader();
-    qint64           readExt4Header(qint64);
-    qint64           readExtendedData(qint64);
-    bool             verifyArcHeader();
-    qint64           readScript(qint64);
-    qint64           readPackageHeaders(qint64);
-    qint64 static    readFile(char*,qint64,const WFile*);
+    void                  readArcHeaders();
+    qint64                readTailHeader();
+    qint64                readFrontHeader();
+    qint64                readExt4Header(qint64);
+    qint64                readExtendedData(qint64);
+    bool                  verifyArcHeader();
+    qint64                readScript(qint64);
+    qint64                readPackageHeaders(qint64);
 
-    void                      createFileStructure();
-    WFileSystemNode*          parseFilePathToFSNode(QString,QString,qint64,qint64,qint64);
+    WFileSystemTree*          createFileStructure();
+    WFileSystemNode*          parseFilePathToFSNode(QString,QString,WFile*);
     QPointer<WFileSystemTree> files;
+};
+
+/*!
+ * This class implements reading compressed files from WPI with support of lazy
+ * initialization, arbitrary cursor position manipulations and zlib state
+ * saving between calls.
+ */
+class WAIFileReader{
+public:
+    WAIFileReader(WFileSystemNode*,qint64 bufferSize=DEFAULT_BUFFER_SIZE);
+
+    /* actual routines working with compressed files */
+    qint64 read(char*,qint64);
+    qint64 pos();
+    bool seek(qint64 offset);
+    WFileSystemNode *fsNode;
+
+    /* convenience routines to support lazy initialization */
+    static QList<WAIFileReader*> readersList; // instances container
+    static qint64 read(char*,qint64,const WFile*); // gets instance by WFile* and reads using it
+    static qint64 pos(const WFile*); // gets instance by WFile* and tells the current cursor pos
+    static bool seek(qint64 offset,const WFile*); // gets instance by WFile* and seeks the cursor
+    static WAIFileReader* getReaderByFSNode(WFileSystemNode*); // provides/creates instances
+
+private:
+    char *buffer;
+    qint64 bufferSize;
 };
 
 #endif // WARPINARCHIVEINTERFACE_H

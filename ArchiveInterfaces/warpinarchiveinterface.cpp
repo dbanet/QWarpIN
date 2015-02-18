@@ -71,7 +71,7 @@ void WarpinArchiveInterface::readArcHeaders(){
 
     this->readPackageHeaders(packHeadersOffset);
 
-    this->createFileStructure();
+    this->files=this->createFileStructure();
 
 }
 
@@ -190,6 +190,10 @@ qint64 WarpinArchiveInterface::readExtendedData(qint64 extendedOffset){
     return extendedOffset+sizeof(this->extendedData);
 }
 
+/*!
+ * The function to read the description (header) of each WarpIN archive's package
+ * @param packHeadersOffset the position of the package headers
+ */
 qint64 WarpinArchiveInterface::readPackageHeaders(qint64 packHeadersOffset){
     qint64 savedOffset=this->archive->pos();
     this->archive->seek(packHeadersOffset);
@@ -211,8 +215,15 @@ qint64 WarpinArchiveInterface::readPackageHeaders(qint64 packHeadersOffset){
     return 0;
 }
 
-void WarpinArchiveInterface::createFileStructure(){
-    QList<WIFileHeader> fileList;
+/*!
+ * For every package header from this->packHeadersList (should be populated previously)
+ * scans the archive for files in the package, creating a complete WFileSystemTree
+ * containing hierarchially each file and directory mentioned in the archive with full
+ * information about each file (extract from each file's header, located just before it)
+ * @returns the full archive's filesystem in the form of WFileSystemTree
+ */
+WFileSystemTree* WarpinArchiveInterface::createFileStructure(){
+    QList<WIFileHeader> fileList; // building a complete list of file headers
     for(auto i=this->packHeadersList.begin();i!=this->packHeadersList.end();++i){
         qint64 filesNumber=(*i)->files;
         if(filesNumber<0)
@@ -237,8 +248,8 @@ void WarpinArchiveInterface::createFileStructure(){
         }
     }
 
-    /* parsing fileList into fileSystemTree */
-    WFileSystemTree *root=new WFileSystemTree(new WFileSystemNode(new QDir()));
+    /* building the very archive file system */
+    auto root=new WFileSystemTree(new WFileSystemNode(new QDir()));
     for(auto i=fileList.begin();i!=fileList.end();++i){
         QString absoluteFilePath=i->name;
         QString filePackageName;
@@ -253,12 +264,45 @@ void WarpinArchiveInterface::createFileStructure(){
         if(!foundPackage)
             throw new E_WPIAI_FileBelongsToUndefinedPackage;
 
-        root->addChild(parseFilePathToFSNode(absoluteFilePath,filePackageName,0,0,0));
+        auto file=new WFile(); // the WFile object for the file
+        /* filling in all the information found in the file's header */
+        file->setProperty("arcPos",0);
+        file->setProperty("arcChecksum",i->checksum);
+        file->setProperty("arcCompSize",(qint64)i->compsize);
+        file->setProperty("arcCRC",(quint64)i->crc);
+        QDateTime creationDateTime;
+        creationDateTime.setTime_t(i->creation);
+        file->setCreationDateTime(creationDateTime);
+        QDateTime lastAccessDateTime;
+        lastAccessDateTime.setTime_t(i->lastwrite);
+        file->setLastAccessDateTime(lastAccessDateTime);
+        file->setProperty("arcExtended",i->extended);
+        file->setProperty("arcLastwrite",(quint64)i->lastwrite);
+        file->setProperty("arcMagic",i->magic);
+        file->setProperty("arcMethod",i->method);
+        file->setProperty("arcOrigSize",(quint64)i->origsize);
+        /* providing file operation interfaces to WFile */
+        file->setReadFn(&WAIFileReader::read);
+        file->setSeekFn(&WAIFileReader::seek);
+        file->setPosFn(&WAIFileReader::pos);
+        /* constructing the WFileSystemNode chain to the file */
+        auto node=parseFilePathToFSNode(absoluteFilePath,filePackageName,file);
+        /* adding the chain to the whole FS */
+        root->addChild(node);
     }
-    files=QPointer<WFileSystemTree>(root);
+    return root;
 }
 
-WFileSystemNode* WarpinArchiveInterface::parseFilePathToFSNode(QString relativeFilePath,QString currentDir,qint64 pos,qint64 compsize,qint64 origsize){
+/*!
+ * Fully qualified path -> WFileSystemNode chain converter routine
+ * @param relativeFilePath the path to be parsed into WFileSystemNode chain
+ * @param currentDir the name of the root node
+ * @param file the WFile object the last node (of type=file) to be associated with
+ * @returns a pointer to a WFileSystemNode chain, generated from a slash/backslash-separated
+ *          string where for each part the one next to it is its only child (the last one is
+ *          a file, all the rest are directories)
+ */
+WFileSystemNode* WarpinArchiveInterface::parseFilePathToFSNode(QString relativeFilePath,QString currentDir,WFile *file){
     WFileSystemNode *node;
     if(relativeFilePath.contains('\\'))
         node=new WFileSystemNode(
@@ -267,27 +311,18 @@ WFileSystemNode* WarpinArchiveInterface::parseFilePathToFSNode(QString relativeF
                 parseFilePathToFSNode(
                     relativeFilePath.section('\\',1),
                     relativeFilePath.split('\\')[0],
-                    pos,compsize,origsize
+                    file
                 )
             )
         );
     else{
-        WFile *file=new WFile(relativeFilePath);
-        file->setSize(origsize);
-        file->setReadDataFn(&WarpinArchiveInterface::readFile);
-        QMap<QString,QVariant> filePositionMap;
-        filePositionMap["pos"]=pos;
-        filePositionMap["compsize"]=compsize;
+        file->setFileName(relativeFilePath);
         node=new WFileSystemNode(new QDir(currentDir),
             (*(new QList<WFileSystemNode*>))<<
-                (new WFileSystemNode(file,QVariant(filePositionMap)))
+                (new WFileSystemNode(file))
         );
     }
     return node;
-}
-
-qint64 WarpinArchiveInterface::readFile(char *data,qint64 length,const WFile *self){
-
 }
 
 WFileSystemTree* WarpinArchiveInterface::getFiles(){
@@ -299,4 +334,59 @@ WFileSystemTree* WarpinArchiveInterface::getFiles(){
 WarpinArchiveInterface::~WarpinArchiveInterface(){
     for(auto i=this->packHeadersList.begin();i!=this->packHeadersList.end();)
         delete (*i), i=this->packHeadersList.erase(i);
+}
+
+/*****************/
+/* WAIFileReader */
+/*****************/
+
+WAIFileReader::WAIFileReader(WFileSystemNode *fsNode, qint64 bufferSize):
+    fsNode(fsNode),
+    bufferSize(bufferSize){
+
+}
+
+qint64 WAIFileReader::read(char *data,qint64 len){
+    return 0;
+}
+
+qint64 WAIFileReader::pos(){
+    return 0;
+}
+
+bool WAIFileReader::seek(qint64 offset){
+    return true;
+}
+
+qint64 WAIFileReader::read(char *data,qint64 len,const WFile *file){
+    WAIFileReader *reader=WAIFileReader::getReaderByFSNode(file->fsNode);
+    return reader->read(data,len);
+}
+
+qint64 WAIFileReader::pos(const WFile *file){
+    WAIFileReader *reader=WAIFileReader::getReaderByFSNode(file->fsNode);
+    return reader->pos();
+}
+
+bool WAIFileReader::seek(qint64 offset,const WFile *file){
+    WAIFileReader *reader=WAIFileReader::getReaderByFSNode(file->fsNode);
+    return reader->seek(offset);
+}
+
+QList<WAIFileReader*> WAIFileReader::readersList;
+WAIFileReader* WAIFileReader::getReaderByFSNode(WFileSystemNode *fsNode){
+    bool readerAlreadyExists=false;
+    WAIFileReader *reader;
+    foreach(reader,WAIFileReader::readersList)
+        if(reader->fsNode==fsNode){
+            readerAlreadyExists=true;
+            break;
+        }
+    if(readerAlreadyExists)
+        return reader;
+    else{
+        reader=new WAIFileReader(fsNode);
+        WAIFileReader::readersList<<reader;
+        return reader;
+    }
 }
