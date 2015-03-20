@@ -12,7 +12,6 @@ private:
     QDateTime fileLastAccessDateTime;
 
     virtual qint64 readData(char *data,qint64 length);
-    virtual bool seek(qint64 offset);
     virtual qint64 pos() const;
 
     typedef qint64 (*readCallbackFn)(char *data,qint64 length,const WFile*);
@@ -43,6 +42,7 @@ public:
 
     void setReadFn(readCallbackFn fn);
     qint64 read(char *data, qint64 maxlen);
+    virtual bool seek(qint64 offset);
     void setSeekFn(seekCallbackFn fn);
     void setPosFn(posCallbackFn fn);
 

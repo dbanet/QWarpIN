@@ -144,6 +144,7 @@ private:
     char *inputBuffer;
     char *outputBuffer;
     qint64 bufferSize;
+    qint64 bytesBuffered;
     bz_stream *z;
     QFile *arcFile;
     qint64 arcCur;
