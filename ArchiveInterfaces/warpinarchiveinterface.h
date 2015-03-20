@@ -144,11 +144,12 @@ private:
     char *inputBuffer;
     char *outputBuffer;
     qint64 bufferSize;
-    bz_stream z;
+    bz_stream *z;
+    QFile *arcFile;
     qint64 arcCur;
     qint64 compCur;
     qint64 decompCur;
-    qint64 bufPos; // the piece of (decompressed) file mapped onto outputBuffer
+    qint64 bufCur; // the piece of (decompressed) file mapped onto outputBuffer
 };
 
 #endif // WARPINARCHIVEINTERFACE_H

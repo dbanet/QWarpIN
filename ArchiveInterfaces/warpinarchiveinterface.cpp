@@ -28,8 +28,7 @@ WarpinArchiveInterface::WarpinArchiveInterface(QFile *archive) :
     WFile *f=((WFile*)(this->files()->rootNode()->children[0]->children[0]->file));
     f->open(QIODevice::ReadOnly);
     char *d=new char[DEFAULT_BUFFER_SIZE];
-    f->read(d,DEFAULT_BUFFER_SIZE);
-    qDebug()<<d;
+    f->read(d,0);
 }
 
 QString WarpinArchiveInterface::id() const{
@@ -346,72 +345,152 @@ WarpinArchiveInterface::~WarpinArchiveInterface(){
 WAIFileReader::WAIFileReader(WFileSystemNode *fsNode, qint64 bufferSize):
     fsNode(fsNode),
     bufferSize(bufferSize){
-    this->z.bzalloc=0;
-    this->z.bzfree=0;
-    this->z.opaque=NULL;
-    this->z.bzalloc=NULL;
-    this->z.bzfree=NULL;
-
-    this->arcCur=fsNode->file->property("arcPos").toLongLong();
-    this->compCur=0;
-    this->decompCur=0;
-
+    this->arcFile=((WarpinArchiveInterface*)this->fsNode->file->property("archive").value<void*>())->arcFile();
     this->inputBuffer=(char*)malloc(this->bufferSize);
     this->outputBuffer=(char*)malloc(this->bufferSize);
-
-    BZ2_bzDecompressInit(&(this->z),0,0);
+    this->seek(0);
+    qDebug()<<this->bufCur;
+    qDebug()<<this->outputBuffer;
 }
 
 qint64 WAIFileReader::read(char *data,qint64 maxlen){
-    QFile *arcFile=((WarpinArchiveInterface*)this->fsNode->file->property("archive").value<void*>())->arcFile();
-    qDebug()<<"Decompressing file"<<this->fsNode->file->fileName();
-    qint64 savedPos=arcFile->pos();
-    arcFile->seek(this->arcCur);
-
-    qint64 bytesRead=-1;
-    if(!~(bytesRead=arcFile->read(this->inputBuffer,this->bufferSize)))
-            throw new E_WPIAI_FileReadError;
-    this->arcCur+=bytesRead;
-    this->compCur+=bytesRead;
-
-    if(bytesRead<this->bufferSize) // reached the end of archive
-        ;
-
-    qDebug()<<this->fsNode->file->property("arcCompSize").toLongLong();
-    if(this->compCur>this->fsNode->file->property("arcCompSize").toLongLong()){ // ran out of the compressed file data (overread compCur-compSize bytes)
-        // calculating bytes left til the end of the comp file
-        this->z.avail_in=this->fsNode->file->property("arcCompSize").toLongLong()-(this->compCur-bytesRead);
-        // unrolling pos to the end of the comp file
-        this->arcCur-=this->compCur-this->fsNode->file->property("arcCompSize").toLongLong();
-        this->compCur-=this->compCur-this->fsNode->file->property("arcCompSize").toLongLong();
-        arcFile->seek(this->arcCur);
-    }
-    else
-        this->z.avail_in=this->bufferSize;
-
-    this->z.next_out=this->outputBuffer;
-    this->z.avail_out=this->bufferSize;
-    this->z.next_in=this->inputBuffer;
-    while(this->z.avail_in){
-        if(0>BZ2_bzDecompress(&(this->z)))
-            throw new E_WPIAI_FileDecompressionError;
-    }
-
-    memcpy(data,this->outputBuffer,this->bufferSize);
-
-    arcFile->seek(savedPos);
-    return bytesRead;
+    return 0;
 }
 
 qint64 WAIFileReader::pos(){
     return this->decompCur;
 }
 
+/**
+ * Starts reading and decompressing compressed file until the
+ * given position (the first input parameter qint64 offset) is
+ * reached in the decompressed data.
+ *
+ * After this function's completion:
+ * this->arcCur    is set to the position of the first byte of
+ *                 this->inputBuffer in the archive file;
+ * this->compCur   is set to the same value, but relatively to the
+ *                 compressed file beginning;
+ * this->decompCur is set to the first input parameter qint64 offset
+ *                 (the requested position to seek to in the terms of
+ *                 decompressed data);
+ * this->bufCur    is set to the value representing the byte of
+ *                 this->outputBuffer which is requested to seek to;
+ * the position of the cursor of the archive file is left untouched.
+ */
 bool WAIFileReader::seek(qint64 offset){
-    qint64 delta=offset-this->compCur;
-    this->compCur+=delta;
-    this->arcCur+=delta;
-    return true;
+    // purging garbage
+    memset(this->inputBuffer,0,this->bufferSize);
+    memset(this->outputBuffer,0,this->bufferSize);
+
+    // initializing bz2
+    this->z=new bz_stream;
+    this->z->bzalloc=0;
+    this->z->bzfree=0;
+    this->z->opaque=NULL;
+    this->z->bzalloc=NULL;
+    this->z->bzfree=NULL;
+    this->z->next_in=this->inputBuffer;
+    this->z->next_out=this->outputBuffer;
+    this->z->avail_out=this->bufferSize;
+    BZ2_bzDecompressInit(this->z,0,0);
+
+    // seeking to zero
+    qint64 savedPos=arcFile->pos();
+    this->arcCur=fsNode->file->property("arcPos").toLongLong();
+    this->compCur=0;
+    this->decompCur=0;
+    this->bufCur=0;
+    arcFile->seek(this->arcCur);
+
+    qint64 outLen=0; // the amount of data we will get decompressed
+    forever{
+        // reading this->bufferSize bytes
+        qint64 bytesRead=-1;
+        if(!~(bytesRead=arcFile->read(this->inputBuffer,this->bufferSize)))
+                throw new E_WPIAI_FileReadError;
+        this->arcCur+=bytesRead;
+        this->compCur+=bytesRead;
+
+        // handling errors (reached the end of the archive)
+        if(bytesRead<this->bufferSize)
+            ;
+
+        // read more than needed: ran out of the compressed file data (overread compCur-compSize bytes)
+        if(this->compCur>this->fsNode->file->property("arcCompSize").toLongLong()){
+            // calculating bytes of compressed data left available (til the end of it)
+            this->z->avail_in=this->fsNode->file->property("arcCompSize").toLongLong()-(this->compCur-bytesRead);
+
+            // unrolling pos to the end of the comp file
+            this->arcCur-=this->compCur-this->fsNode->file->property("arcCompSize").toLongLong();
+            this->compCur-=this->compCur-this->fsNode->file->property("arcCompSize").toLongLong();
+            arcFile->seek(this->arcCur);
+        }
+        // all fine, got this->bufferSize of compressed data
+        else
+            this->z->avail_in=this->bufferSize;
+
+        // decompressing the whole this->inputBuffer
+        forever{
+            int rc=BZ2_bzDecompress(this->z);
+
+            // an unrecoverable decompression error has occured
+            if(BZ_PARAM_ERROR      == rc
+            || BZ_DATA_ERROR       == rc
+            || BZ_DATA_ERROR_MAGIC == rc
+            || BZ_MEM_ERROR        == rc
+            ) throw new E_WPIAI_FileDecompressionError;
+
+            // compressed file's end has been reached (all data has been decompressed)
+            if(BZ_STREAM_END){
+                outLen=(qint64(this->z->total_out_hi32)<<32)+qint64(this->z->total_out_lo32);
+
+                // if we've gotten our needed offset in this->outputBuffer, we're done
+                if(offset<outLen){
+                    this->decompCur=offset;
+                    this->bufCur=offset%this->bufferSize;
+                    this->arcFile->seek(savedPos);
+                    return true;
+                }
+                // otherwise, we're unable to seek
+                else return this->arcFile->seek(savedPos),false;
+            }
+
+            // the output buffer has ended
+            if(0==this->z->avail_out
+            && 0< this->z->avail_in){
+                outLen=(qint64(this->z->total_out_hi32)<<32)+qint64(this->z->total_out_lo32);
+
+                // if we've gotten our needed offset in this->outputBuffer, we're done
+                if(offset<outLen){
+                    this->decompCur=offset;
+                    this->bufCur=offset%this->bufferSize;
+                    this->arcFile->seek(savedPos);
+                    return true;
+                }
+                // otherwise purge the obtained decompressed data (we don't need it anyway)
+                // to get the space for the new portion and continue
+                else{
+                    memset(this->outputBuffer,0,this->bufferSize);
+                    this->z->next_out=this->outputBuffer;
+                }
+            }
+            // the input data has ended
+            else{
+                outLen=(qint64(this->z->total_out_hi32)<<32)+qint64(this->z->total_out_lo32);
+
+                // if we've gotten our needed offset in this->outputBuffer, we're done
+                if(offset<outLen){
+                    this->decompCur=offset;
+                    this->bufCur=offset%this->bufferSize;
+                    this->arcFile->seek(savedPos);
+                    return true;
+                }
+                // otherwise break out for the new portion of input data
+                else break;
+            }
+        }
+    }
 }
 
 qint64 WAIFileReader::read(char *data,qint64 len,const WFile *file){
