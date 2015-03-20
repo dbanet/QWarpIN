@@ -54,7 +54,7 @@ struct WIFileHeader{
     ulong  lastwrite       ; // file's last write date/time (req. time.h) (*UM#3)
     ulong  creation        ; // file's creation date/time (req. time.h) (*UM#3)
     char   extended        ; // size of extended information (if any)
-} __attribute__ ((packed)); /* if this __attribute__ is not set, the resulting structure is 3 bytes larger than in common .wpi archives */
+} __attribute((packed));
 
 /*!
  * A structure representing a package in an archive.
@@ -145,6 +145,7 @@ private:
     char *outputBuffer;
     qint64 bufferSize;
     bz_stream z;
+    qint64 arcCur;
     qint64 compCur;
     qint64 decompCur;
     qint64 bufPos; // the piece of (decompressed) file mapped onto outputBuffer

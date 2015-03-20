@@ -25,14 +25,11 @@ WarpinArchiveInterface::WarpinArchiveInterface(QFile *archive) :
                 + "size comp. -> \"" + QString::number(this->packHeadersList[i]->compsize) + "\"; "
         ).toStdString().c_str());
     qDebug(QString("Archive filesystem: "+this->files()->toJSON()).toStdString().c_str());
-    WFile *f=(this->files()->rootNode()->children[0]->children[0]->file);
-    char *d=new char[DEFAULT_BUFFER_SIZE];
-    qDebug()<<"opening...";
+    WFile *f=((WFile*)(this->files()->rootNode()->children[0]->children[0]->file));
     f->open(QIODevice::ReadOnly);
-    qDebug()<<"reading...";
-    f->read(d,DEFAULT_BUFFER_SIZE); QString out;
-    //for(int i=0;i!=DEFAULT_BUFFER_SIZE;++i) out+=QChar(d[i]=='\0'?'.':d[i]);
-    //qDebug(out.toStdString().c_str());
+    char *d=new char[DEFAULT_BUFFER_SIZE];
+    f->read(d,DEFAULT_BUFFER_SIZE);
+    qDebug()<<d;
 }
 
 QString WarpinArchiveInterface::id() const{
@@ -355,45 +352,52 @@ WAIFileReader::WAIFileReader(WFileSystemNode *fsNode, qint64 bufferSize):
     this->z.bzalloc=NULL;
     this->z.bzfree=NULL;
 
-    this->compCur=fsNode->file->property("arcPos").toLongLong();
+    this->arcCur=fsNode->file->property("arcPos").toLongLong();
+    this->compCur=0;
     this->decompCur=0;
 
     this->inputBuffer=(char*)malloc(this->bufferSize);
     this->outputBuffer=(char*)malloc(this->bufferSize);
 
-    //BZ2_bzDecompressInit(&(this->z),0,0);
+    BZ2_bzDecompressInit(&(this->z),0,0);
 }
 
 qint64 WAIFileReader::read(char *data,qint64 maxlen){
-    qDebug()<<"::read";
     QFile *arcFile=((WarpinArchiveInterface*)this->fsNode->file->property("archive").value<void*>())->arcFile();
+    qDebug()<<"Decompressing file"<<this->fsNode->file->fileName();
     qint64 savedPos=arcFile->pos();
-    arcFile->seek(this->compCur);
+    arcFile->seek(this->arcCur);
 
     qint64 bytesRead=-1;
     if(!~(bytesRead=arcFile->read(this->inputBuffer,this->bufferSize)))
             throw new E_WPIAI_FileReadError;
-    qDebug()<<"read "<<bytesRead<<" bytes";
+    this->arcCur+=bytesRead;
     this->compCur+=bytesRead;
 
     if(bytesRead<this->bufferSize) // reached the end of archive
         ;
 
-    if(this->compCur>this->fsNode->file->property("arcCompSize").toLongLong()) // ran out of the compressed file data
-        this->z.avail_in=this->fsNode->file->property("arcCompSize").toLongLong()-this->compCur;
+    qDebug()<<this->fsNode->file->property("arcCompSize").toLongLong();
+    if(this->compCur>this->fsNode->file->property("arcCompSize").toLongLong()){ // ran out of the compressed file data (overread compCur-compSize bytes)
+        // calculating bytes left til the end of the comp file
+        this->z.avail_in=this->fsNode->file->property("arcCompSize").toLongLong()-(this->compCur-bytesRead);
+        // unrolling pos to the end of the comp file
+        this->arcCur-=this->compCur-this->fsNode->file->property("arcCompSize").toLongLong();
+        this->compCur-=this->compCur-this->fsNode->file->property("arcCompSize").toLongLong();
+        arcFile->seek(this->arcCur);
+    }
     else
         this->z.avail_in=this->bufferSize;
 
     this->z.next_out=this->outputBuffer;
     this->z.avail_out=this->bufferSize;
-    qDebug()<<"starting decompression...";
-    BZ2_bzDecompressInit(&(this->z),0,0);
+    this->z.next_in=this->inputBuffer;
     while(this->z.avail_in){
         if(0>BZ2_bzDecompress(&(this->z)))
             throw new E_WPIAI_FileDecompressionError;
     }
 
-    data=this->outputBuffer;
+    memcpy(data,this->outputBuffer,this->bufferSize);
 
     arcFile->seek(savedPos);
     return bytesRead;
@@ -404,6 +408,9 @@ qint64 WAIFileReader::pos(){
 }
 
 bool WAIFileReader::seek(qint64 offset){
+    qint64 delta=offset-this->compCur;
+    this->compCur+=delta;
+    this->arcCur+=delta;
     return true;
 }
 
