@@ -1,7 +1,12 @@
 #include "wfilesystem.h"
 
 WFile::WFile(QString fileName,QObject *parent) :
+    mode(NotOpen),
     QFile(fileName,parent){
+}
+
+void WFile::setFSNode(WFileSystemNode *node){
+    this->fsNode=node;
 }
 
 void WFile::setSize(qint64 fileSize){
@@ -18,6 +23,10 @@ void WFile::setReadFn(readCallbackFn fn){
 
 qint64 WFile::readData(char *data,qint64 length){
     return this->readFn(data,length,this);
+}
+
+qint64 WFile::read(char *data, qint64 maxlen){
+    return this->readData(data,maxlen);
 }
 
 void WFile::setSeekFn(seekCallbackFn fn){
@@ -50,4 +59,12 @@ void WFile::setLastAccessDateTime(QDateTime dateTime){
 
 QDateTime WFile::lastAccessDateTime(){
     return this->fileLastAccessDateTime;
+}
+
+bool WFile::open(OpenMode mode){
+    return mode==QIODevice::ReadOnly?this->mode=mode,true:false;
+}
+
+WFile::OpenMode WFile::openMode() const{
+    return this->mode;
 }

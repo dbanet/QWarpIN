@@ -1,11 +1,12 @@
 #include "wfilesystem.h"
 
-WFileSystemNode::WFileSystemNode(QFile *file,QList<WFileSystemNode*> &children,QObject *parent) :
+WFileSystemNode::WFileSystemNode(WFile *file,QList<WFileSystemNode*> &children,QObject *parent) :
     QObject(parent),
     file(file){
     foreach(WFileSystemNode *node,children)
         this->children.append(QPointer<WFileSystemNode>(node));
     this->type=WFileSystem::file;
+    this->file->setFSNode(this);
 }
 
 WFileSystemNode::WFileSystemNode(QDir *dir,QList<WFileSystemNode*> &children,QObject *parent) :
@@ -16,10 +17,11 @@ WFileSystemNode::WFileSystemNode(QDir *dir,QList<WFileSystemNode*> &children,QOb
     this->type=WFileSystem::directory;
 }
 
-WFileSystemNode::WFileSystemNode(QFile *file,QObject *parent) :
+WFileSystemNode::WFileSystemNode(WFile *file,QObject *parent) :
     QObject(parent),
     file(file){
     this->type=WFileSystem::file;
+    this->file->setFSNode(this);
 }
 
 WFileSystemNode::WFileSystemNode(QDir *dir,QObject *parent) :

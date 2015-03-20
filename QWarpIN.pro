@@ -12,7 +12,7 @@ TARGET = QWarpIN
 TEMPLATE = app
 LIBS += -llibbz2
 
-QMAKE_CXXFLAGS += -std=c++11
+QMAKE_CXXFLAGS += -std=c++11 -O0
 
 SOURCES += main.cpp\
         wpi.cpp \

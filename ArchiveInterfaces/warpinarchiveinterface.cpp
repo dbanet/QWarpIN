@@ -1,6 +1,5 @@
 #include "warpinarchiveinterface.h"
 #include "globals.h"
-#include <bzlib.h>
 
 WarpinArchiveInterface::WarpinArchiveInterface(QFile *archive) :
     archive(archive){
@@ -25,7 +24,15 @@ WarpinArchiveInterface::WarpinArchiveInterface(QFile *archive) :
                 + "size orig. -> \"" + QString::number(this->packHeadersList[i]->origsize) + "\"; "
                 + "size comp. -> \"" + QString::number(this->packHeadersList[i]->compsize) + "\"; "
         ).toStdString().c_str());
-    qDebug(QString("Archive filesystem: "+this->files->toJSON()).toStdString().c_str());
+    qDebug(QString("Archive filesystem: "+this->files()->toJSON()).toStdString().c_str());
+    WFile *f=(this->files()->rootNode()->children[0]->children[0]->file);
+    char *d=new char[DEFAULT_BUFFER_SIZE];
+    qDebug()<<"opening...";
+    f->open(QIODevice::ReadOnly);
+    qDebug()<<"reading...";
+    f->read(d,DEFAULT_BUFFER_SIZE); QString out;
+    //for(int i=0;i!=DEFAULT_BUFFER_SIZE;++i) out+=QChar(d[i]=='\0'?'.':d[i]);
+    //qDebug(out.toStdString().c_str());
 }
 
 QString WarpinArchiveInterface::id() const{
@@ -70,9 +77,6 @@ void WarpinArchiveInterface::readArcHeaders(){
     } else packHeadersOffset=extendedDataOffset;
 
     this->readPackageHeaders(packHeadersOffset);
-
-    this->files=this->createFileStructure();
-
 }
 
 bool WarpinArchiveInterface::verifyArcHeader(){
@@ -224,6 +228,7 @@ qint64 WarpinArchiveInterface::readPackageHeaders(qint64 packHeadersOffset){
  */
 WFileSystemTree* WarpinArchiveInterface::createFileStructure(){
     QList<WIFileHeader> fileList; // building a complete list of file headers
+    QList<int> filePositionsList; // WIFileHeader doesn't have a field for filepos, so making a list of them also
     for(auto i=this->packHeadersList.begin();i!=this->packHeadersList.end();++i){
         qint64 filesNumber=(*i)->files;
         if(filesNumber<0)
@@ -243,30 +248,29 @@ WFileSystemTree* WarpinArchiveInterface::createFileStructure(){
                 throw new E_WPIAI_MaximumPathLengthExceededWhileReadingFiles;
 
             fileList<<fileHeader;
+            filePositionsList<<curpos+sizeof(WIFileHeader);
 
-            curpos+=sizeof(WIFileHeader)+fileHeader.compsize-3; // I don't know why -3. It just doesn't match otherwise. ~~dbanet
+            curpos+=sizeof(WIFileHeader)+fileHeader.compsize;
         }
     }
 
     /* building the very archive file system */
     auto root=new WFileSystemTree(new WFileSystemNode(new QDir()));
-    for(auto i=fileList.begin();i!=fileList.end();++i){
+    int n=0; for(auto i=fileList.begin();i!=fileList.end();++i,++n){
         QString absoluteFilePath=i->name;
-        QString filePackageName;
 
         /* trying to identify which package does the given file belong to */
         bool foundPackage=false;
-        foreach(auto package,packHeadersList)
-            if(package->number==i->package){
-                filePackageName=package->name;
+        WIPackHeader *package;
+        foreach(package,packHeadersList)
+            if(package->number==i->package)
                 foundPackage=true;
-            }
         if(!foundPackage)
             throw new E_WPIAI_FileBelongsToUndefinedPackage;
 
         auto file=new WFile(); // the WFile object for the file
         /* filling in all the information found in the file's header */
-        file->setProperty("arcPos",0);
+        file->setProperty("arcPos",filePositionsList[n]);
         file->setProperty("arcChecksum",i->checksum);
         file->setProperty("arcCompSize",(qint64)i->compsize);
         file->setProperty("arcCRC",(quint64)i->crc);
@@ -281,14 +285,16 @@ WFileSystemTree* WarpinArchiveInterface::createFileStructure(){
         file->setProperty("arcMagic",i->magic);
         file->setProperty("arcMethod",i->method);
         file->setProperty("arcOrigSize",(quint64)i->origsize);
+        /* saving a link to this WAI */
+        file->setProperty("archive",QVariant::fromValue((void*)this));
         /* providing file operation interfaces to WFile */
         file->setReadFn(&WAIFileReader::read);
         file->setSeekFn(&WAIFileReader::seek);
         file->setPosFn(&WAIFileReader::pos);
         /* constructing the WFileSystemNode chain to the file */
-        auto node=parseFilePathToFSNode(absoluteFilePath,filePackageName,file);
+        auto node=parseFilePathToFSNode(absoluteFilePath,package->name,file);
         /* adding the chain to the whole FS */
-        root->addChild(node);
+        root->addChild(node);qDebug()<<file->property("arcPos");
     }
     return root;
 }
@@ -325,10 +331,10 @@ WFileSystemNode* WarpinArchiveInterface::parseFilePathToFSNode(QString relativeF
     return node;
 }
 
-WFileSystemTree* WarpinArchiveInterface::getFiles(){
-    if(this->files.isNull())
-        this->createFileStructure();
-    return this->files;
+WFileSystemTree* WarpinArchiveInterface::files(){
+    if(this->fs.isNull())
+        this->fs=this->createFileStructure();
+    return this->fs;
 }
 
 WarpinArchiveInterface::~WarpinArchiveInterface(){
@@ -343,15 +349,58 @@ WarpinArchiveInterface::~WarpinArchiveInterface(){
 WAIFileReader::WAIFileReader(WFileSystemNode *fsNode, qint64 bufferSize):
     fsNode(fsNode),
     bufferSize(bufferSize){
+    this->z.bzalloc=0;
+    this->z.bzfree=0;
+    this->z.opaque=NULL;
+    this->z.bzalloc=NULL;
+    this->z.bzfree=NULL;
 
+    this->compCur=fsNode->file->property("arcPos").toLongLong();
+    this->decompCur=0;
+
+    this->inputBuffer=(char*)malloc(this->bufferSize);
+    this->outputBuffer=(char*)malloc(this->bufferSize);
+
+    //BZ2_bzDecompressInit(&(this->z),0,0);
 }
 
-qint64 WAIFileReader::read(char *data,qint64 len){
-    return 0;
+qint64 WAIFileReader::read(char *data,qint64 maxlen){
+    qDebug()<<"::read";
+    QFile *arcFile=((WarpinArchiveInterface*)this->fsNode->file->property("archive").value<void*>())->arcFile();
+    qint64 savedPos=arcFile->pos();
+    arcFile->seek(this->compCur);
+
+    qint64 bytesRead=-1;
+    if(!~(bytesRead=arcFile->read(this->inputBuffer,this->bufferSize)))
+            throw new E_WPIAI_FileReadError;
+    qDebug()<<"read "<<bytesRead<<" bytes";
+    this->compCur+=bytesRead;
+
+    if(bytesRead<this->bufferSize) // reached the end of archive
+        ;
+
+    if(this->compCur>this->fsNode->file->property("arcCompSize").toLongLong()) // ran out of the compressed file data
+        this->z.avail_in=this->fsNode->file->property("arcCompSize").toLongLong()-this->compCur;
+    else
+        this->z.avail_in=this->bufferSize;
+
+    this->z.next_out=this->outputBuffer;
+    this->z.avail_out=this->bufferSize;
+    qDebug()<<"starting decompression...";
+    BZ2_bzDecompressInit(&(this->z),0,0);
+    while(this->z.avail_in){
+        if(0>BZ2_bzDecompress(&(this->z)))
+            throw new E_WPIAI_FileDecompressionError;
+    }
+
+    data=this->outputBuffer;
+
+    arcFile->seek(savedPos);
+    return bytesRead;
 }
 
 qint64 WAIFileReader::pos(){
-    return 0;
+    return this->decompCur;
 }
 
 bool WAIFileReader::seek(qint64 offset){
@@ -389,4 +438,9 @@ WAIFileReader* WAIFileReader::getReaderByFSNode(WFileSystemNode *fsNode){
         WAIFileReader::readersList<<reader;
         return reader;
     }
+}
+
+WAIFileReader::~WAIFileReader(){
+    free(this->inputBuffer);
+    free(this->outputBuffer);
 }

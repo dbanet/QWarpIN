@@ -23,9 +23,14 @@ private:
     seekCallbackFn seekFn;
     posCallbackFn posFn;
 
+    OpenMode mode;
+
 public:
     explicit WFile(QString fileName="",QObject *parent=0);
     WFileSystemNode *fsNode;
+
+    bool open(OpenMode mode);
+    OpenMode openMode() const;
 
     void setSize(qint64);
     virtual qint64 size() const;
@@ -37,8 +42,11 @@ public:
     QDateTime lastAccessDateTime();
 
     void setReadFn(readCallbackFn fn);
+    qint64 read(char *data, qint64 maxlen);
     void setSeekFn(seekCallbackFn fn);
     void setPosFn(posCallbackFn fn);
+
+    void setFSNode(WFileSystemNode *node);
 
 signals:
 

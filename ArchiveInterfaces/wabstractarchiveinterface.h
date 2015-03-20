@@ -13,7 +13,7 @@ public:
     virtual QString id() const=0;
     virtual QString arcName() const=0;
     virtual QFile* arcFile() const=0;
-    virtual WFileSystemTree* getFiles()=0;
+    virtual WFileSystemTree* files()=0;
 
 signals:
 

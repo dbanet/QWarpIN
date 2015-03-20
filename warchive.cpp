@@ -3,8 +3,14 @@
 
 WArchive::WArchive(QFile *archiveFile,QObject *parent) :
     QObject(parent){
-    WArchiveInterfaceFactory *interfaces=getArchiveInterfaces();
-    for(auto it=interfaces->list().begin();it!=interfaces->list().end();)
+    auto interfaces=getArchiveInterfaces();
+    auto interfaceIDs=interfaces->list();
+
+    if(!archiveFile->open(QIODevice::ReadOnly))
+        throw new E_WA_FileNotFound;
+    else archiveFile->close();
+
+    for(auto it=interfaceIDs.begin();it!=interfaceIDs.end();)
         try{
             this->interface=interfaces->get(*it)(archiveFile);
             break;

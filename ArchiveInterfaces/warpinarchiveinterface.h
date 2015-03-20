@@ -1,6 +1,7 @@
 #ifndef WARPINARCHIVEINTERFACE_H
 #define WARPINARCHIVEINTERFACE_H
 #include "wabstractarchiveinterface.h"
+#include <bzlib.h>
 
 #define MAXPATHLEN 256
 #define DEFAULT_BUFFER_SIZE 1024000
@@ -53,7 +54,7 @@ struct WIFileHeader{
     ulong  lastwrite       ; // file's last write date/time (req. time.h) (*UM#3)
     ulong  creation        ; // file's creation date/time (req. time.h) (*UM#3)
     char   extended        ; // size of extended information (if any)
-};
+} __attribute__ ((packed)); /* if this __attribute__ is not set, the resulting structure is 3 bytes larger than in common .wpi archives */
 
 /*!
  * A structure representing a package in an archive.
@@ -90,7 +91,7 @@ public:
     QString id() const;
     QString arcName() const;
     QFile* arcFile() const;
-    WFileSystemTree* getFiles();
+    WFileSystemTree* files();
     ~WarpinArchiveInterface();
 
 private:
@@ -112,7 +113,7 @@ private:
 
     WFileSystemTree*          createFileStructure();
     WFileSystemNode*          parseFilePathToFSNode(QString,QString,WFile*);
-    QPointer<WFileSystemTree> files;
+    QPointer<WFileSystemTree> fs;
 };
 
 /*!
@@ -137,9 +138,16 @@ public:
     static bool seek(qint64 offset,const WFile*); // gets instance by WFile* and seeks the cursor
     static WAIFileReader* getReaderByFSNode(WFileSystemNode*); // provides/creates instances
 
+    ~WAIFileReader();
+
 private:
-    char *buffer;
+    char *inputBuffer;
+    char *outputBuffer;
     qint64 bufferSize;
+    bz_stream z;
+    qint64 compCur;
+    qint64 decompCur;
+    qint64 bufPos; // the piece of (decompressed) file mapped onto outputBuffer
 };
 
 #endif // WARPINARCHIVEINTERFACE_H
