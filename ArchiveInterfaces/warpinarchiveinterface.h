@@ -4,7 +4,7 @@
 #include <bzlib.h>
 
 #define MAXPATHLEN 256
-#define DEFAULT_BUFFER_SIZE 1024000
+#define DEFAULT_BUFFER_SIZE 1048576
 
 struct WIArcHeader{
 /* 0x0000: */  uchar   v1, v2, v3, v4     ; // archive verification

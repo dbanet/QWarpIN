@@ -25,12 +25,6 @@ WarpinArchiveInterface::WarpinArchiveInterface(QFile *archive) :
                 + "size comp. -> \"" + QString::number(this->packHeadersList[i]->compsize) + "\"; "
         ).toStdString().c_str());
     qDebug(QString("Archive filesystem: "+this->files()->toJSON()).toStdString().c_str());
-    WFile *f=((WFile*)(this->files()->rootNode()->children[0]->children[0]->file));
-    f->open(QIODevice::ReadOnly);
-    char *d=new char[DEFAULT_BUFFER_SIZE];
-    f->seek(200);
-    f->read(d,300);
-    qDebug()<<d;
 }
 
 QString WarpinArchiveInterface::id() const{
@@ -377,7 +371,6 @@ qint64 WAIFileReader::read(char *data,qint64 maxlen){
     qint64 bz2bytesReadErr=(qint64(this->z->total_out_hi32)<<32)+qint64(this->z->total_out_lo32);
 
     qint64 bytesLeftToCopy,bytesToBeCopied;
-    qDebug()<<this->fsNode->file->size();
     bytesToBeCopied=(maxlen<this->fsNode->file->size()-this->decompCur)?
                 maxlen:
                 this->fsNode->file->size()-this->decompCur;
@@ -385,11 +378,17 @@ qint64 WAIFileReader::read(char *data,qint64 maxlen){
 
     // there is some data in this->outputBuffer initially, so dealing with it
     qint64 bytesInBufferInitially=this->bytesBuffered-this->bufCur;
-    if(bytesLeftToCopy<bytesInBufferInitially) // got enough data in this->outputBuffer
-        return memcpy(data,this->outputBuffer+this->bufCur,bytesLeftToCopy),bytesLeftToCopy; // so return
+    if(bytesLeftToCopy<bytesInBufferInitially){ // got enough data in this->outputBuffer
+        memcpy(data,this->outputBuffer+this->bufCur,bytesLeftToCopy); // so return
+        this->bufCur+=bytesLeftToCopy;
+        this->decompCur+=bytesLeftToCopy;
+        return bytesLeftToCopy;
+    }
     else{ // got not enough data in this->outputBuffer, so just copy it, and decompress some more
-        memcpy(data,this->outputBuffer,this->bufferSize-this->bufCur);
+        memcpy(data,this->outputBuffer+this->bufCur,this->bufferSize-this->bufCur);
         bytesLeftToCopy-=this->bufferSize-this->bufCur;
+        this->bufCur+=bytesLeftToCopy;
+        this->decompCur+=bytesLeftToCopy;
     }
 
     forever{
@@ -397,6 +396,9 @@ qint64 WAIFileReader::read(char *data,qint64 maxlen){
         // the data in the buffers is no longer needed, so purging them for the later use
         memset(this->inputBuffer,0,this->bufferSize);
         memset(this->outputBuffer,0,this->bufferSize);
+        this->z->next_in=this->inputBuffer;
+        this->z->next_out=this->outputBuffer;
+        this->z->avail_out=this->bufferSize;
 
         // reading this->bufferSize bytes
         qint64 bytesRead=-1;
@@ -404,6 +406,7 @@ qint64 WAIFileReader::read(char *data,qint64 maxlen){
                 throw new E_WPIAI_FileReadError;
         this->arcCur+=bytesRead;
         this->compCur+=bytesRead;
+        this->z->next_in=this->inputBuffer;
 
         // handling errors (reached the end of the archive)
         if(bytesRead<this->bufferSize)
@@ -434,17 +437,18 @@ qint64 WAIFileReader::read(char *data,qint64 maxlen){
             || BZ_MEM_ERROR        == rc
             ) throw new E_WPIAI_FileDecompressionError;
 
-            // compressed file's end has been reached (all data has been decompressed)
-            if(BZ_STREAM_END){
+            // compressed file's end has been reached (all data has been decompressed and is now in this->outputBuffer)
+            if(BZ_STREAM_END==rc){
                 // so just outputting bytesLeftToCopy or all of it, and then returning
                 qint64 bytesAlreadyCopied=bytesToBeCopied-bytesLeftToCopy;
                 qint64 bytesDecompressedAll=(qint64(this->z->total_out_hi32)<<32)+qint64(this->z->total_out_lo32)-bz2bytesReadErr;
                 qint64 bytesJustDecompressed=bytesDecompressedAll-(bytesAlreadyCopied-bytesInBufferInitially);
-                this->decompCur+=bytesJustDecompressed;
-                this->bufCur+=bytesJustDecompressed;
+                this->bytesBuffered=bytesJustDecompressed;
                 qint64 bytesToCopyNow=(bytesLeftToCopy<bytesJustDecompressed)?
                             bytesLeftToCopy:
                             bytesJustDecompressed;
+                this->decompCur+=bytesToCopyNow;
+                this->bufCur=bytesToCopyNow;
                 memcpy(data+bytesAlreadyCopied,this->outputBuffer,bytesToCopyNow);
                 bytesLeftToCopy-=bytesToCopyNow;
                 this->arcFile->seek(savedPos);
@@ -456,11 +460,12 @@ qint64 WAIFileReader::read(char *data,qint64 maxlen){
             && 0< this->z->avail_in){
                 qint64 bytesAlreadyCopied=bytesToBeCopied-bytesLeftToCopy;
                 qint64 bytesJustDecompressed=this->bufferSize;
-                this->decompCur+=bytesJustDecompressed;
-                this->bufCur+=bytesJustDecompressed;
+                this->bytesBuffered=bytesJustDecompressed;
                 qint64 bytesToCopyNow=(bytesLeftToCopy<bytesJustDecompressed)?
                             bytesLeftToCopy:
                             bytesJustDecompressed;
+                this->decompCur+=bytesToCopyNow;
+                this->bufCur=bytesToCopyNow;
                 memcpy(data+bytesAlreadyCopied,this->outputBuffer,bytesToCopyNow);
                 bytesLeftToCopy-=bytesToCopyNow;
                 if(0==bytesLeftToCopy){
@@ -477,11 +482,12 @@ qint64 WAIFileReader::read(char *data,qint64 maxlen){
                 qint64 bytesAlreadyCopied=bytesToBeCopied-bytesLeftToCopy;
                 qint64 bytesDecompressedAll=(qint64(this->z->total_out_hi32)<<32)+qint64(this->z->total_out_lo32)-bz2bytesReadErr;
                 qint64 bytesJustDecompressed=bytesDecompressedAll-(bytesAlreadyCopied-bytesInBufferInitially);
-                this->decompCur+=bytesJustDecompressed;
-                this->bufCur+=bytesJustDecompressed;
+                this->bytesBuffered=bytesJustDecompressed;
                 qint64 bytesToCopyNow=(bytesLeftToCopy<bytesJustDecompressed)?
                             bytesLeftToCopy:
                             bytesJustDecompressed;
+                this->decompCur+=bytesToCopyNow;
+                this->bufCur=bytesToCopyNow;
                 memcpy(&data[bytesAlreadyCopied],this->outputBuffer,bytesToCopyNow);
                 bytesLeftToCopy-=bytesToCopyNow;
                 if(0==bytesLeftToCopy){
@@ -549,6 +555,7 @@ bool WAIFileReader::seek(qint64 offset){
                 throw new E_WPIAI_FileReadError;
         this->arcCur+=bytesRead;
         this->compCur+=bytesRead;
+        this->z->next_in=this->inputBuffer;
 
         // handling errors (reached the end of the archive)
         if(bytesRead<this->bufferSize)
@@ -580,14 +587,16 @@ bool WAIFileReader::seek(qint64 offset){
             ) throw new E_WPIAI_FileDecompressionError;
 
             // compressed file's end has been reached (all data has been decompressed)
-            if(BZ_STREAM_END){
+            if(BZ_STREAM_END==rc){
                 outLen=(qint64(this->z->total_out_hi32)<<32)+qint64(this->z->total_out_lo32);
 
                 // if we've gotten our needed offset in this->outputBuffer, we're done
                 if(offset<outLen){
                     this->decompCur=offset;
                     this->bufCur=offset%this->bufferSize;
-                    this->bytesBuffered=outLen%this->bufferSize;
+                    this->bytesBuffered=(0==outLen%this->bufferSize)?
+                                this->bufferSize:
+                                outLen%this->bufferSize;
                     this->arcFile->seek(savedPos);
                     return true;
                 }
@@ -604,7 +613,9 @@ bool WAIFileReader::seek(qint64 offset){
                 if(offset<outLen){
                     this->decompCur=offset;
                     this->bufCur=offset%this->bufferSize;
-                    this->bytesBuffered=outLen%this->bufferSize;
+                    this->bytesBuffered=(0==outLen%this->bufferSize)?
+                                this->bufferSize:
+                                outLen%this->bufferSize;
                     this->arcFile->seek(savedPos);
                     return true;
                 }
@@ -623,7 +634,9 @@ bool WAIFileReader::seek(qint64 offset){
                 if(offset<outLen){
                     this->decompCur=offset;
                     this->bufCur=offset%this->bufferSize;
-                    this->bytesBuffered=outLen%this->bufferSize;
+                    this->bytesBuffered=(0==outLen%this->bufferSize)?
+                                this->bufferSize:
+                                outLen%this->bufferSize;
                     this->arcFile->seek(savedPos);
                     return true;
                 }
