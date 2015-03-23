@@ -1,8 +1,8 @@
 #include "wfilesystem.h"
 
 WFile::WFile(QString fileName,QObject *parent) :
-    mode(NotOpen),
-    QFile(fileName,parent){
+    QFile(fileName,parent),
+    mode(NotOpen){
 }
 
 void WFile::setFSNode(WFileSystemNode *node){
@@ -26,7 +26,10 @@ qint64 WFile::readData(char *data,qint64 length){
 }
 
 qint64 WFile::read(char *data, qint64 maxlen){
-    return this->readData(data,maxlen);
+    if(!cached)
+        return this->readData(data,maxlen);
+    else
+        return this->readCachedData(data,maxlen);
 }
 
 void WFile::setSeekFn(seekCallbackFn fn){
@@ -67,4 +70,23 @@ bool WFile::open(OpenMode mode){
 
 WFile::OpenMode WFile::openMode() const{
     return this->mode;
+}
+
+void WFile::forceCache(){
+    qint64 savedOffset=this->pos();
+    this->cache=(char*)malloc(this->size());
+    memset(this->cache,0,this->size());
+    this->read(this->cache,this->size());
+    this->cached=true;
+    this->seek(savedOffset);
+}
+
+qint64 WFile::readCachedData(char *data, qint64 length){
+    qint64 bytesToCopy=(length<this->size()-this->pos())?length:this->size()-this->pos();
+    memcpy(data,this->cache+this->pos(),bytesToCopy);
+    return bytesToCopy;
+}
+
+WFile::~WFile(){
+    free(this->cache);
 }

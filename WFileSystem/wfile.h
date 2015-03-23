@@ -12,6 +12,7 @@ private:
     QDateTime fileLastAccessDateTime;
 
     virtual qint64 readData(char *data,qint64 length);
+    qint64 readCachedData(char *data,qint64 length);
     virtual qint64 pos() const;
 
     typedef qint64 (*readCallbackFn)(char *data,qint64 length,const WFile*);
@@ -23,6 +24,8 @@ private:
     posCallbackFn posFn;
 
     OpenMode mode;
+
+    char *cache;
 
 public:
     explicit WFile(QString fileName="",QObject *parent=0);
@@ -47,6 +50,11 @@ public:
     void setPosFn(posCallbackFn fn);
 
     void setFSNode(WFileSystemNode *node);
+
+    void forceCache();
+    bool cached=false;
+
+    ~WFile();
 
 signals:
 

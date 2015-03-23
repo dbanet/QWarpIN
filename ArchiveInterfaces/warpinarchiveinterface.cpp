@@ -24,7 +24,13 @@ WarpinArchiveInterface::WarpinArchiveInterface(QFile *archive) :
                 + "size orig. -> \"" + QString::number(this->packHeadersList[i]->origsize) + "\"; "
                 + "size comp. -> \"" + QString::number(this->packHeadersList[i]->compsize) + "\"; "
         ).toStdString().c_str());
-    qDebug(QString("Archive filesystem: "+this->files()->toJSON()).toStdString().c_str());
+    qDebug("Archive filesystem: %s",qPrintable(this->files()->toJSON()));
+    WFile *f=this->files()->rootNode()->children[0]->children[0]->file;
+    f->forceCache();
+    char *d=new char[f->size()];
+    memset(d,0,f->size());
+    f->read(d,f->size());
+    qDebug()<<d;
 }
 
 QString WarpinArchiveInterface::id() const{
@@ -378,15 +384,15 @@ qint64 WAIFileReader::read(char *data,qint64 maxlen){
 
     // there is some data in this->outputBuffer initially, so dealing with it
     qint64 bytesInBufferInitially=this->bytesBuffered-this->bufCur;
-    if(bytesLeftToCopy<bytesInBufferInitially){ // got enough data in this->outputBuffer
+    if(bytesLeftToCopy<=bytesInBufferInitially){ // got enough data in this->outputBuffer
         memcpy(data,this->outputBuffer+this->bufCur,bytesLeftToCopy); // so return
         this->bufCur+=bytesLeftToCopy;
         this->decompCur+=bytesLeftToCopy;
         return bytesLeftToCopy;
     }
     else{ // got not enough data in this->outputBuffer, so just copy it, and decompress some more
-        memcpy(data,this->outputBuffer+this->bufCur,this->bufferSize-this->bufCur);
-        bytesLeftToCopy-=this->bufferSize-this->bufCur;
+        memcpy(data,this->outputBuffer+this->bufCur,bytesInBufferInitially);
+        bytesLeftToCopy-=bytesInBufferInitially;
         this->bufCur+=bytesLeftToCopy;
         this->decompCur+=bytesLeftToCopy;
     }

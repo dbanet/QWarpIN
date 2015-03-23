@@ -1,6 +1,7 @@
 #ifndef WFILESYSTEM_H
 #define WFILESYSTEM_H
 #include <QObject>
+#include <QDebug>
 #include <QPointer>
 #include <QList>
 #include <QFile>
