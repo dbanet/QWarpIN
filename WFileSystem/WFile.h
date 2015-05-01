@@ -1,7 +1,7 @@
 #ifndef WFILE_H
 #define WFILE_H
 
-#include "wfilesystem.h"
+#include "WFileSystem.h"
 
 class WFile : public QFile
 {

@@ -1,4 +1,4 @@
-#include "warpinarchiveinterface.h"
+#include "WarpINArchiveInterface.h"
 #include "globals.h"
 
 WarpinArchiveInterface::WarpinArchiveInterface(QFile *archive) :

@@ -1,4 +1,4 @@
-#include "wfilesystem.h"
+#include "WFileSystem.h"
 
 WFile::WFile(QString fileName,QObject *parent) :
     QFile(fileName,parent),

@@ -1,6 +1,6 @@
 #ifndef WARPINARCHIVEINTERFACE_H
 #define WARPINARCHIVEINTERFACE_H
-#include "wabstractarchiveinterface.h"
+#include "../WAbstractArchiveInterface.h"
 #include <bzlib.h>
 
 #define MAXPATHLEN 256

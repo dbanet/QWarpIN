@@ -15,28 +15,28 @@ LIBS += -llibbz2
 QMAKE_CXXFLAGS += -std=c++11 -O0
 
 SOURCES += main.cpp\
-        wpi.cpp \
+        WPI.cpp \
     globals.cpp \
-    ArchiveInterfaces/wabstractarchiveinterface.cpp \
+    ArchiveInterfaces/WAbstractArchiveInterface.cpp \
     ArchiveInterfaces/index.cpp \
-    ArchiveInterfaces/warpinarchiveinterface.cpp \
+    ArchiveInterfaces/WarpIN/WarpINArchiveInterface.cpp \
     exceptions.cpp \
-    warchive.cpp \
-    WFileSystem/wfilesystemtree.cpp \
-    WFileSystem/wfilesystemnode.cpp \
-    WFileSystem/wfile.cpp
+    WArchive.cpp \
+    WFileSystem/WFileSystemTree.cpp \
+    WFileSystem/WFileSystemNode.cpp \
+    WFileSystem/WFile.cpp
 
-HEADERS  += wpi.h \
+HEADERS  += WPI.h \
     globals.h \
-    ArchiveInterfaces/wabstractarchiveinterface.h \
+    ArchiveInterfaces/WAbstractArchiveInterface.h \
     ArchiveInterfaces/index.h \
-    ArchiveInterfaces/warpinarchiveinterface.h \
-    genericobjectfactory.h \
+    ArchiveInterfaces/WarpIN/WarpINArchiveInterface.h \
+    GenericObjectFactory.h \
     exceptions.h \
-    warchive.h \
-    WFileSystem/wfilesystemtree.h \
-    WFileSystem/wfilesystem.h \
-    WFileSystem/wfilesystemnode.h \
-    WFileSystem/wfile.h
+    WArchive.h \
+    WFileSystem/WFileSystemTree.h \
+    WFileSystem/WFileSystem.h \
+    WFileSystem/WFileSystemNode.h \
+    WFileSystem/WFile.h
 
-FORMS    += wpi.ui
+FORMS    += WPI.ui

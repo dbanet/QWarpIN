@@ -1,5 +1,5 @@
-#include "wpi.h"
-#include "ui_wpi.h"
+#include "WPI.h"
+#include "ui_WPI.h"
 
 WPI::WPI(QWidget *parent) :
     QMainWindow(parent),

@@ -2,7 +2,7 @@
 #define WPI_H
 
 #include <QMainWindow>
-#include "warchive.h"
+#include "WArchive.h"
 
 namespace Ui {
 class WPI;

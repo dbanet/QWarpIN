@@ -1,7 +1,7 @@
 #ifndef WFILESYSTEMNODE_H
 #define WFILESYSTEMNODE_H
 
-#include "wfilesystem.h"
+#include "WFileSystem.h"
 
 class WFileSystemNode : public QObject
 {

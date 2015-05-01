@@ -16,7 +16,7 @@ namespace WFileSystem{
         directory,file
     } types;
 }
-#include "wfilesystemtree.h"
-#include "wfilesystemnode.h"
-#include "wfile.h"
+#include "WFileSystemTree.h"
+#include "WFileSystemNode.h"
+#include "WFile.h"
 #endif // WFILESYSTEM_H

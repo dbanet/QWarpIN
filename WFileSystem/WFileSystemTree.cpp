@@ -1,4 +1,4 @@
-#include "wfilesystem.h"
+#include "WFileSystem.h"
 
 WFileSystemTree::WFileSystemTree(WFileSystemNode *rootNode,QObject *parent) :
     QObject(parent){

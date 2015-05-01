@@ -1,4 +1,4 @@
-#include "warchive.h"
+#include "WArchive.h"
 #include "WFileSystem/wfilesystem.h"
 
 WArchive::WArchive(QFile *archiveFile,QObject *parent) :

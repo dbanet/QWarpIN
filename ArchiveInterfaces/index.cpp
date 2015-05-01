@@ -1,5 +1,5 @@
 #include "index.h"
-#include "warpinarchiveinterface.h"
+#include "WarpIN/WarpINArchiveInterface.h"
 
 /* to add your own custom interface to archive files, include its declaration ↑ and register it with the factory ↓ */
 

@@ -1,7 +1,7 @@
 #ifndef FILESYSTEMTREE_H
 #define FILESYSTEMTREE_H
 
-#include "wfilesystem.h"
+#include "WFileSystem.h"
 
 class WFileSystemTree : public QObject
 {
