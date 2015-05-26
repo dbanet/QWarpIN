@@ -26,10 +26,13 @@ qint64 WFile::readData(char *data,qint64 length){
 }
 
 qint64 WFile::read(char *data, qint64 maxlen){
-    if(!cached)
-        return this->readData(data,maxlen);
+    if(this->isOpen())
+        if(!cached)
+            return this->readData(data,maxlen);
+        else
+            return this->readCachedData(data,maxlen);
     else
-        return this->readCachedData(data,maxlen);
+        return -1;
 }
 
 void WFile::setSeekFn(seekCallbackFn fn){

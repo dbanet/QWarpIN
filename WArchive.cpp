@@ -1,5 +1,6 @@
 #include "WArchive.h"
-#include "WFileSystem/wfilesystem.h"
+#include "WFileSystem/WFileSystem.h"
+#include "WScriptHost/WScriptHost.h"
 
 WArchive::WArchive(QFile *archiveFile,QObject *parent) :
     QObject(parent){
@@ -28,6 +29,8 @@ WArchive::WArchive(QFile *archiveFile,QObject *parent) :
 
     qDebug()<<"The archive is of type"<<this->interface->id();
     qDebug()<<"The archive's name is"<<this->name();
+
+    WScriptHost host;
 }
 QString WArchive::name(){
     return this->interface->arcName();

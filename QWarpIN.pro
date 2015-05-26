@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += core gui
+QT       += core gui script
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -24,7 +24,8 @@ SOURCES += main.cpp\
     WArchive.cpp \
     WFileSystem/WFileSystemTree.cpp \
     WFileSystem/WFileSystemNode.cpp \
-    WFileSystem/WFile.cpp
+    WFileSystem/WFile.cpp \
+    WScriptHost/WScriptHost.cpp
 
 HEADERS  += WPI.h \
     globals.h \
@@ -37,6 +38,13 @@ HEADERS  += WPI.h \
     WFileSystem/WFileSystemTree.h \
     WFileSystem/WFileSystem.h \
     WFileSystem/WFileSystemNode.h \
-    WFileSystem/WFile.h
+    WFileSystem/WFile.h \
+    WScriptHost/WScriptHost.h
 
 FORMS    += WPI.ui
+
+RESOURCES += \
+    WScriptHost/script.qrc
+
+OTHER_FILES += \
+    WScriptHost/js/Host.js
