@@ -6,7 +6,7 @@
 WArchiveInterfaceFactory* getArchiveInterfaces(){
     auto interfacesFactory=new WArchiveInterfaceFactory;
 
-    interfacesFactory->add<WarpinArchiveInterface>("WarpinArchiveInterface");
+    interfacesFactory->add<WarpINArchiveInterface>("WarpINArchiveInterface");
 
     return interfacesFactory;
 }

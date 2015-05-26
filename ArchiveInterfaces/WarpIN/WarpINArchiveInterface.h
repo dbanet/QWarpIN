@@ -1,10 +1,9 @@
 #ifndef WARPINARCHIVEINTERFACE_H
 #define WARPINARCHIVEINTERFACE_H
-#include "../WAbstractArchiveInterface.h"
 #include <bzlib.h>
 
-#define MAXPATHLEN 256
-#define DEFAULT_BUFFER_SIZE 1048576
+#include "../WAbstractArchiveInterface.h"
+#include "WAIFileReader.h"
 
 struct WIArcHeader{
 /* 0x0000: */  uchar   v1, v2, v3, v4     ; // archive verification
@@ -84,15 +83,15 @@ const unsigned char  WI_VERIFY3=0x02  ; // archive header
 const unsigned char  WI_VERIFY4=0xBE  ; // (WIArcHeader.v1, .v2, .v3, .v4)
 const unsigned short WIFH_MAGIC=0xF012; // any value for "magic" in file header
 
-class WarpinArchiveInterface : public WAbstractArchiveInterface
+class WarpINArchiveInterface : public WAbstractArchiveInterface
 {
 public:
-    WarpinArchiveInterface(QFile*);
+    WarpINArchiveInterface(QFile*);
     QString id() const;
     QString arcName() const;
     QFile* arcFile() const;
     WFileSystemTree* files();
-    ~WarpinArchiveInterface();
+    ~WarpINArchiveInterface();
 
 private:
     QFile*                archive;
@@ -114,43 +113,6 @@ private:
     WFileSystemTree*          createFileStructure();
     WFileSystemNode*          parseFilePathToFSNode(QString,QString,WFile*);
     QPointer<WFileSystemTree> fs;
-};
-
-/*!
- * This class implements reading compressed files from WPI with support of lazy
- * initialization, arbitrary cursor position manipulations and zlib state
- * saving between calls.
- */
-class WAIFileReader{
-public:
-    WAIFileReader(WFileSystemNode*,qint64 bufferSize=DEFAULT_BUFFER_SIZE);
-
-    /* actual routines working with compressed files */
-    qint64 read(char*,qint64);
-    qint64 pos();
-    bool seek(qint64 offset);
-    WFileSystemNode *fsNode;
-
-    /* convenience routines to support lazy initialization */
-    static QList<WAIFileReader*> readersList; // instances container
-    static qint64 read(char*,qint64,const WFile*); // gets instance by WFile* and reads using it
-    static qint64 pos(const WFile*); // gets instance by WFile* and tells the current cursor pos
-    static bool seek(qint64 offset,const WFile*); // gets instance by WFile* and seeks the cursor
-    static WAIFileReader* getReaderByFSNode(WFileSystemNode*); // provides/creates instances
-
-    ~WAIFileReader();
-
-private:
-    char *inputBuffer;
-    char *outputBuffer;
-    qint64 bufferSize;
-    qint64 bytesBuffered;
-    bz_stream *z;
-    QFile *arcFile;
-    qint64 arcCur;
-    qint64 compCur;
-    qint64 decompCur;
-    qint64 bufCur; // the piece of (decompressed) file mapped onto outputBuffer
 };
 
 #endif // WARPINARCHIVEINTERFACE_H

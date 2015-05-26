@@ -12,7 +12,7 @@ TARGET = QWarpIN
 TEMPLATE = app
 LIBS += -llibbz2
 
-QMAKE_CXXFLAGS += -std=c++11 -O0
+QMAKE_CXXFLAGS += -std=c++11 -O0 -Wno-literal-suffix -Wno-unused-variable -Wno-unused-local-typedefs
 
 SOURCES += main.cpp\
         WPI.cpp \
@@ -25,7 +25,9 @@ SOURCES += main.cpp\
     WFileSystem/WFileSystemTree.cpp \
     WFileSystem/WFileSystemNode.cpp \
     WFileSystem/WFile.cpp \
-    WScriptHost/WScriptHost.cpp
+    WScriptHost/WScriptHost.cpp \
+    ArchiveInterfaces/WarpIN/WAIFileReader.cpp \
+    ArchiveInterfaces/WarpIN/WAIScriptParser.cpp
 
 HEADERS  += WPI.h \
     globals.h \
@@ -39,7 +41,9 @@ HEADERS  += WPI.h \
     WFileSystem/WFileSystem.h \
     WFileSystem/WFileSystemNode.h \
     WFileSystem/WFile.h \
-    WScriptHost/WScriptHost.h
+    WScriptHost/WScriptHost.h \
+    ArchiveInterfaces/WarpIN/WAIFileReader.h \
+    ArchiveInterfaces/WarpIN/WAIScriptParser.h
 
 FORMS    += WPI.ui
 

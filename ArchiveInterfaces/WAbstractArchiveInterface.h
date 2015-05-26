@@ -1,9 +1,9 @@
 #ifndef WABSTRACTARCHIVEINTERFACE_H
 #define WABSTRACTARCHIVEINTERFACE_H
-
 #include <QObject>
 #include <QFile>
-#include "../exceptions.h"
+
+#include "globals.h"
 #include "../WFileSystem/WFileSystem.h"
 
 class WAbstractArchiveInterface : public QObject
