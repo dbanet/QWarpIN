@@ -22,4 +22,6 @@ private:
 
 };
 
+Q_DECLARE_METATYPE(WFileSystemTree*)
+
 #endif // FILESYSTEMTREE_H

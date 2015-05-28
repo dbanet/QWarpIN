@@ -35,7 +35,11 @@ public:
 
 public slots:
     bool open(OpenMode mode);
+    WFile* open();
+    WFile* openRO();
+    WFile* openRW();
     OpenMode openMode() const;
+    bool isOpen() const;
 
     void setSize(qint64);
     virtual qint64 size() const;
@@ -48,6 +52,8 @@ public slots:
 
     void setReadFn(readCallbackFn fn);
     qint64 read(char *data, qint64 maxlen);
+    QByteArray read(qint64 maxlen);
+    QByteArray readAll();
     virtual bool seek(qint64 offset);
     void setSeekFn(seekCallbackFn fn);
     void setPosFn(posCallbackFn fn);
@@ -59,5 +65,7 @@ public slots:
 signals:
 
 };
+
+Q_DECLARE_METATYPE(WFile*)
 
 #endif // WFILE_H

@@ -18,13 +18,13 @@ QString WAIScriptParser::translate(){
                 },
                 atInit:function(){
                     $.log("atInit called!");
-                    $.log(this.fs.toJSON());
                 },
                 fillResponse:function(){
                     $.log("fillResponse called!");
                 },
                 install:function(){
                     $.log("install called!");
+                    $.log(this.fs.navigate("/Pck2001/COPYING").file().open().readAll());
                 }
             }
             return Package;

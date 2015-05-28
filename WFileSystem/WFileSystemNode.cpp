@@ -1,33 +1,46 @@
 #include "WFileSystem.h"
 
 WFileSystemNode::WFileSystemNode(WFile *file,QList<WFileSystemNode*> &children,QObject *parent) :
-    QObject(parent),
-    file(file){
+    QObject(parent){
     foreach(WFileSystemNode *node,children)
         this->children.append(QPointer<WFileSystemNode>(node));
-    this->type=WFileSystem::file;
-    this->file->setFSNode(this);
+    this->setFile(file);
 }
 
 WFileSystemNode::WFileSystemNode(QDir *dir,QList<WFileSystemNode*> &children,QObject *parent) :
-    QObject(parent),
-    dir(dir){
+    QObject(parent){
     foreach(WFileSystemNode *node,children)
         this->children.append(QPointer<WFileSystemNode>(node));
-    this->type=WFileSystem::directory;
+    this->setDir(dir);
 }
 
 WFileSystemNode::WFileSystemNode(WFile *file,QObject *parent) :
-    QObject(parent),
-    file(file){
-    this->type=WFileSystem::file;
-    this->file->setFSNode(this);
+    QObject(parent){
+    this->setFile(file);
 }
 
 WFileSystemNode::WFileSystemNode(QDir *dir,QObject *parent) :
-    QObject(parent),
-    dir(dir){
+    QObject(parent){
+    this->setDir(dir);
+}
+
+WFile* WFileSystemNode::file(){
+    return this->_file;
+}
+
+QDir* WFileSystemNode::dir(){
+    return this->_dir;
+}
+
+void WFileSystemNode::setFile(WFile *file){
+    this->type=WFileSystem::file;
+    this->_file=file;
+    this->_file->setFSNode(this);
+}
+
+void WFileSystemNode::setDir(QDir *dir){
     this->type=WFileSystem::directory;
+    this->_dir=dir;
 }
 
 /*!
@@ -52,7 +65,7 @@ WFileSystemNode::WFileSystemNode(QDir *dir,QObject *parent) :
 void WFileSystemNode::addChild(WFileSystemNode *node){
     qint64 equinamedChildId=-1; // have none
     for(int i=0;i<this->children.length();++i)
-        if(this->children[i]->getNodeName()==node->getNodeName()){
+        if(this->children[i]->nodeName()==node->nodeName()){
             equinamedChildId=i;
             break;
         }
@@ -70,17 +83,17 @@ void WFileSystemNode::addChild(WFileSystemNode *node){
     }
 }
 
-QString WFileSystemNode::getNodeName(){
+QString WFileSystemNode::nodeName(){
     if(this->type==WFileSystem::directory)
-        return this->dir->dirName();
+        return this->_dir->dirName();
     else
-        return this->file->fileName();
+        return this->_file->fileName();
 }
 
 WFileSystemNode* WFileSystemNode::navigate(QString path){
     QStringList nodes=path.split('/');
     foreach(WFileSystemNode *child,this->children)
-        if(child->getNodeName()==nodes[0])
+        if(child->nodeName()==nodes[0])
             return nodes.length()>1?(
                 nodes.pop_front(),child->navigate(nodes.join("/"))
             ):(
@@ -94,14 +107,14 @@ QString WFileSystemNode::toJSON(){
     foreach(WFileSystemNode *child,this->children)
         childrenJSON+=child->toJSON()+",";
     childrenJSON.remove(childrenJSON.length()-1,1);
-    return "{\"nodeName\":\""+this->getNodeName()+"\",\"nodeType\":\""+(this->type==WFileSystem::directory?"directory":"file")+"\",\"nodeChildren\":["+childrenJSON+"]}";
+    return "{\"nodeName\":\""+this->nodeName()+"\",\"nodeType\":\""+(this->type==WFileSystem::directory?"directory":"file")+"\",\"nodeChildren\":["+childrenJSON+"]}";
 }
 
 WFileSystemNode::~WFileSystemNode(){
     foreach(QPointer<WFileSystemNode> node,this->children)
         node->deleteLater();
-    if(this->type==WFileSystem::directory && this->dir!=0)
-        delete this->dir;
-    if(this->type==WFileSystem::file && this->file!=0)
-        delete this->file;
+    if(this->type==WFileSystem::directory && this->_dir!=0)
+        delete this->_dir;
+    if(this->type==WFileSystem::file && this->_file!=0)
+        delete this->_file;
 }

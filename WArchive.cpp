@@ -20,6 +20,11 @@ WArchive::WArchive(QFile *archiveFile,QObject *parent) :
             this->interface=0;
             ++it;
         }
+        catch(exception *e){
+            qDebug(e->what());
+            this->interface=0;
+            ++it;
+        }
         catch(...){
             this->interface=0;
             ++it;

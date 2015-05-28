@@ -35,6 +35,26 @@ qint64 WFile::read(char *data, qint64 maxlen){
         return -1;
 }
 
+QByteArray WFile::read(qint64 maxlen){
+    if(this->isOpen()){
+        qint64 len;
+        char *buf=new char[maxlen];
+        if(!cached)
+            len=this->readData(buf,maxlen);
+        else
+            len=this->readCachedData(buf,maxlen);
+        QByteArray data(buf,len);
+        delete[] buf;
+        return data;
+    }
+    else
+        return QByteArray();
+}
+
+QByteArray WFile::readAll(){
+    return this->read(this->size());
+}
+
 void WFile::setSeekFn(seekCallbackFn fn){
     this->seekFn=fn;
 }
@@ -71,8 +91,25 @@ bool WFile::open(OpenMode mode){
     return mode==QIODevice::ReadOnly?this->mode=mode,true:false;
 }
 
+WFile* WFile::open(){
+    return this->openRO();
+}
+
+WFile* WFile::openRO(){
+    mode=QIODevice::ReadOnly;
+    return this;
+}
+
+WFile* WFile::openRW(){
+    return this;
+}
+
 WFile::OpenMode WFile::openMode() const{
     return this->mode;
+}
+
+bool WFile::isOpen() const{
+    return openMode()!=QIODevice::NotOpen;
 }
 
 void WFile::forceCache(){

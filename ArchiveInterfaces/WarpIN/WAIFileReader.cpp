@@ -3,7 +3,7 @@
 WAIFileReader::WAIFileReader(WFileSystemNode *fsNode, qint64 bufferSize):
     fsNode(fsNode),
     bufferSize(bufferSize){
-    this->arcFile=((WarpINArchiveInterface*)this->fsNode->file->property("archive").value<void*>())->arcFile();
+    this->arcFile=((WarpINArchiveInterface*)this->fsNode->file()->property("archive").value<void*>())->arcFile();
     this->inputBuffer=(char*)malloc(this->bufferSize);
     this->outputBuffer=(char*)malloc(this->bufferSize);
     this->seek(0);
@@ -33,9 +33,9 @@ qint64 WAIFileReader::read(char *data,qint64 maxlen){
     qint64 bz2bytesReadErr=(qint64(this->z->total_out_hi32)<<32)+qint64(this->z->total_out_lo32);
 
     qint64 bytesLeftToCopy,bytesToBeCopied;
-    bytesToBeCopied=(maxlen<this->fsNode->file->size()-this->decompCur)?
+    bytesToBeCopied=(maxlen<this->fsNode->file()->size()-this->decompCur)?
                 maxlen:
-                this->fsNode->file->size()-this->decompCur;
+                this->fsNode->file()->size()-this->decompCur;
     bytesLeftToCopy=bytesToBeCopied;
 
     // there is some data in this->outputBuffer initially, so dealing with it
@@ -75,13 +75,13 @@ qint64 WAIFileReader::read(char *data,qint64 maxlen){
             ;
 
         // read more than needed: ran out of the compressed file data (overread compCur-compSize bytes)
-        if(this->compCur>this->fsNode->file->property("arcCompSize").toLongLong()){
+        if(this->compCur>this->fsNode->file()->property("arcCompSize").toLongLong()){
             // calculating bytes of compressed data left available (til the end of it)
-            this->z->avail_in=this->fsNode->file->property("arcCompSize").toLongLong()-(this->compCur-bytesRead);
+            this->z->avail_in=this->fsNode->file()->property("arcCompSize").toLongLong()-(this->compCur-bytesRead);
 
             // unrolling pos to the end of the comp file
-            this->arcCur-=this->compCur-this->fsNode->file->property("arcCompSize").toLongLong();
-            this->compCur-=this->compCur-this->fsNode->file->property("arcCompSize").toLongLong();
+            this->arcCur-=this->compCur-this->fsNode->file()->property("arcCompSize").toLongLong();
+            this->compCur-=this->compCur-this->fsNode->file()->property("arcCompSize").toLongLong();
             arcFile->seek(this->arcCur);
         }
         // all fine, got this->bufferSize of compressed data
@@ -203,7 +203,7 @@ bool WAIFileReader::seek(qint64 offset){
 
     // seeking to zero
     qint64 savedPos=arcFile->pos();
-    this->arcCur=fsNode->file->property("arcPos").toLongLong();
+    this->arcCur=fsNode->file()->property("arcPos").toLongLong();
     this->compCur=0;
     this->decompCur=0;
     this->bufCur=0;
@@ -224,13 +224,13 @@ bool WAIFileReader::seek(qint64 offset){
             ;
 
         // read more than needed: ran out of the compressed file data (overread compCur-compSize bytes)
-        if(this->compCur>this->fsNode->file->property("arcCompSize").toLongLong()){
+        if(this->compCur>this->fsNode->file()->property("arcCompSize").toLongLong()){
             // calculating bytes of compressed data left available (til the end of it)
-            this->z->avail_in=this->fsNode->file->property("arcCompSize").toLongLong()-(this->compCur-bytesRead);
+            this->z->avail_in=this->fsNode->file()->property("arcCompSize").toLongLong()-(this->compCur-bytesRead);
 
             // unrolling pos to the end of the comp file
-            this->arcCur-=this->compCur-this->fsNode->file->property("arcCompSize").toLongLong();
-            this->compCur-=this->compCur-this->fsNode->file->property("arcCompSize").toLongLong();
+            this->arcCur-=this->compCur-this->fsNode->file()->property("arcCompSize").toLongLong();
+            this->compCur-=this->compCur-this->fsNode->file()->property("arcCompSize").toLongLong();
             arcFile->seek(this->arcCur);
         }
         // all fine, got this->bufferSize of compressed data

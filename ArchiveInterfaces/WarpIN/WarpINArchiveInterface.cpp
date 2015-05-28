@@ -24,14 +24,6 @@ WarpINArchiveInterface::WarpINArchiveInterface(QFile *archive) :
                 + "size orig. -> \"" + QString::number(this->packHeadersList[i]->origsize) + "\"; "
                 + "size comp. -> \"" + QString::number(this->packHeadersList[i]->compsize) + "\"; "
         ).toStdString().c_str());
-    qDebug("Archive filesystem: %s",qPrintable(this->files()->toJSON()));
-    WFile *f=this->files()->rootNode()->children[0]->children[0]->file;
-    f->open(QIODevice::ReadOnly);
-    f->forceCache();
-    char *d=new char[f->size()];
-    memset(d,0,f->size());
-    f->read(d,f->size());
-    qDebug()<<d;
 }
 
 QString WarpINArchiveInterface::id() const{
