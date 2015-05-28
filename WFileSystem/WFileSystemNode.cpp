@@ -77,6 +77,18 @@ QString WFileSystemNode::getNodeName(){
         return this->file->fileName();
 }
 
+WFileSystemNode* WFileSystemNode::navigate(QString path){
+    QStringList nodes=path.split('/');
+    foreach(WFileSystemNode *child,this->children)
+        if(child->getNodeName()==nodes[0])
+            return nodes.length()>1?(
+                nodes.pop_front(),child->navigate(nodes.join("/"))
+            ):(
+                child
+            );
+    throw new E_WFS_FileNotFound;
+}
+
 QString WFileSystemNode::toJSON(){
     QString childrenJSON;
     foreach(WFileSystemNode *child,this->children)

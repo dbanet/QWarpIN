@@ -91,6 +91,7 @@ public:
     QString arcName() const;
     QFile* arcFile() const;
     WFileSystemTree* files();
+    QString script();
     ~WarpINArchiveInterface();
 
 private:
@@ -98,7 +99,7 @@ private:
     WIArcHeader           ArcHeader;
     WIArcExt4Header       ArcExt4Header;
     char*                 extendedData;
-    QString               script;
+    QString               scr;
     QList<WIPackHeader*>  packHeadersList;
 
     void                  readArcHeaders();

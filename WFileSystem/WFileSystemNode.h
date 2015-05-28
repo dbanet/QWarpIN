@@ -15,6 +15,7 @@ public:
     QDir *dir;
     WFile *file;
     QString getNodeName();
+    WFileSystemNode* navigate(QString path);
     QList<QPointer<WFileSystemNode> > children;
     void addChild(WFileSystemNode*);
     QString toJSON();

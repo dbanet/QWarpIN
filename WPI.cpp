@@ -8,6 +8,7 @@ WPI::WPI(QWidget *parent) :
     //WArchive(new QFile("xsystray-0_1_1.wpi"));
     try{
         this->arc=new WArchive(new QFile("xwp-1-0-8.exe"));
+        this->arc->install("{}");
     } catch(exception *e){
         qDebug(e->what());
         return;

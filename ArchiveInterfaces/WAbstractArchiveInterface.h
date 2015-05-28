@@ -14,6 +14,7 @@ public:
     virtual QString arcName() const=0;
     virtual QFile* arcFile() const=0;
     virtual WFileSystemTree* files()=0;
+    virtual QString script()=0;
 
 signals:
 

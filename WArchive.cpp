@@ -29,14 +29,17 @@ WArchive::WArchive(QFile *archiveFile,QObject *parent) :
 
     qDebug()<<"The archive is of type"<<this->interface->id();
     qDebug()<<"The archive's name is"<<this->name();
-
-    WScriptHost host;
 }
 QString WArchive::name(){
     return this->interface->arcName();
 }
 QFile* WArchive::file(){
     return this->interface->arcFile();
+}
+void WArchive::install(QString systemEnvironment){
+    WScriptHost host;
+    host.setInstallationContext(this->interface->script(),this->interface->files(),systemEnvironment);
+    WInstallationInformation info=host.install();
 }
 void WArchive::test(){
 

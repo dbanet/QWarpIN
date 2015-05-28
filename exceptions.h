@@ -3,6 +3,7 @@
 #include <QString>
 #include <exception>
 using std::exception;
+#include "globals.h"
 #define E_DESCR(x) public: virtual const char* what() const throw(){return x;}
 #define E_EXC(x,y) class x : public exception{ E_DESCR(y) }
 
@@ -14,6 +15,10 @@ E_EXC(E_WA_CannotFindSuitableArchiveInterface,
       "WArchive is unable to find a suitable archive interface for the given archive file.");
 E_EXC(E_WA_FileNotFound,
       "WArchive is unable to read the specified archive file (file not found).");
+E_EXC(E_WFS_FileNotFound,
+      "WFileSystem has failed to navigate to the specified file.");
+E_EXC(E_WSH_InvalidContext,
+      "WScriptHost has been requested to perform an operation in a context that does not support this.");
 E_EXC(E_WPIAI_CannotReadArchiveHeader,
       "WarpINArchiveInterface is unable to find a correct header in the given archive file.");
 E_EXC(E_WPIAI_FileReadError,
@@ -33,9 +38,9 @@ E_EXC(E_WPIAI_InvalidAmountOfPackagesInArchive,
 E_EXC(E_WPIAI_InvalidAmountOfFilesInPackage,
       "A WarpIN archive claims to have invalid amount of files in one of its packages. It is probably corrupted.");
 E_EXC(E_WPIAI_MaximumPathLengthExceededWhileReadingFiles,
-      "A WarpIN archive contains a file with path length greater than the maximum length defined at compiletime, MAXPATH");
+      "A WarpIN archive contains a file with path length greater than the maximum length defined at compiletime, MAXPATH=" STRINGIZE(MAXPATH));
 E_EXC(E_WPIAI_FileBelongsToUndefinedPackage,
-      "A WarpIN archive contains a file claimed to belong to a package never defined in the archive. The archive is probably corrupt.");
+      "A WarpIN archive contains a file claimed to belong to a package never defined in the archive. It is probably corrupted..");
 
 #undef E_DESCR
 #endif // EXCEPTIONS_H

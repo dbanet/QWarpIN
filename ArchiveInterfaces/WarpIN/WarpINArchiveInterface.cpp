@@ -12,7 +12,7 @@ WarpINArchiveInterface::WarpINArchiveInterface(QFile *archive) :
     }
     qDebug()<<"Minimum WarpIN version:"<<this->ArcHeader.wi_revision_needed;
     qDebug()<<"Number of packages in the archive:"<<this->ArcHeader.sPackages;
-    qDebug()<<"Size of script:"<<this->ArcHeader.usScriptOrig<<"="<<this->script.size();
+    qDebug()<<"Size of script:"<<this->ArcHeader.usScriptOrig<<"="<<this->scr.size();
     qDebug()<<"Number of packages: "<<this->packHeadersList.length();
     for(int i=0;i<this->packHeadersList.length();++i)
         qDebug(QString(
@@ -173,7 +173,7 @@ qint64 WarpINArchiveInterface::readScript(qint64 scriptOffset){
     BZ2_bzDecompressEnd(&z);
     pszScript[this->ArcHeader.usScriptOrig]='\0';
 
-    this->script=pszScript;
+    this->scr=pszScript;
     this->archive->seek(savedOffset);
     return scriptOffset+this->ArcHeader.usScriptCompr;
 }
@@ -334,6 +334,10 @@ WFileSystemTree* WarpINArchiveInterface::files(){
     if(this->fs.isNull())
         this->fs=this->createFileStructure();
     return this->fs;
+}
+
+QString WarpINArchiveInterface::script(){
+    return QString();
 }
 
 WarpINArchiveInterface::~WarpINArchiveInterface(){

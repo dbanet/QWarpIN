@@ -8,6 +8,9 @@
 #include <QDir>
 #include <QVariant>
 #include <QDateTime>
+
+#include "globals.h"
+
 class WFileSystemTree;
 class WFileSystemNode;
 class WFile;
