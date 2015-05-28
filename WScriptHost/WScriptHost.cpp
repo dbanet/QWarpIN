@@ -12,22 +12,22 @@ void WScriptHost::setInstallationContext(QString script, WFileSystemTree* files,
     this->files=files;
     this->systemEnvironment=systemEnvironment;
 
-    QScriptValue hostConstructor=engine.evaluate(loadModule(":/WSH/js/Host.js"));
-    hostConstructor.property("_native").setProperty("log",engine.newFunction(log));
-    engine.globalObject().setProperty("$",hostConstructor.construct());
+    QScriptValue hostConstructor=this->engine.evaluate(loadModule(":/WSH/js/Host.js")); NGNEXC(this->engine);
+    hostConstructor.property("_native").setProperty("log",this->engine.newFunction(log)); NGNEXC(this->engine);
+    this->engine.globalObject().setProperty("$",hostConstructor.construct()); NGNEXC(this->engine);
 
-    QScriptValue installationConstructor=engine.evaluate(this->script);
-    this->installationObject=installationConstructor.construct(QScriptValueList()<<this->engine.newQObject(this->files)<<systemEnvironment);
-    this->pkgInfo=this->installationObject.property("pkgInfo").call();
-    this->installationObject.property("atInit").call();
+    QScriptValue installationConstructor=engine.evaluate(this->script); NGNEXC(this->engine);
+    this->installationObject=installationConstructor.construct(QScriptValueList()<<this->engine.newQObject(this->files)<<systemEnvironment); NGNEXC(this->engine);
+    this->pkgInfo=this->installationObject.property("pkgInfo").call(this->installationObject); NGNEXC(this->engine);
+    this->installationObject.property("atInit").call(this->installationObject); NGNEXC(this->engine);
 }
 
 WInstallationInformation WScriptHost::install(){
     if(this->context!=this->installationContext)
         throw new E_WSH_InvalidContext;
 
-    this->systemEnvironment=this->installationObject.property("fillResponse").call().toString();
-    QString reportScript=this->installationObject.property("install").call().toString();
+    this->systemEnvironment=this->installationObject.property("fillResponse").call(this->installationObject).toString();
+    QString reportScript=this->installationObject.property("install").call(this->installationObject).toString();
     return WInstallationInformation(this->pkgInfo.property("packageID").toString(),reportScript);
 }
 

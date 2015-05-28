@@ -337,7 +337,7 @@ WFileSystemTree* WarpINArchiveInterface::files(){
 }
 
 QString WarpINArchiveInterface::script(){
-    return QString();
+    return WAIScriptParser(this->scr).translate();
 }
 
 WarpINArchiveInterface::~WarpINArchiveInterface(){

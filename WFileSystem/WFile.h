@@ -30,7 +30,10 @@ private:
 public:
     explicit WFile(QString fileName="",QObject *parent=0);
     WFileSystemNode *fsNode;
+    bool cached=false;
+    ~WFile();
 
+public slots:
     bool open(OpenMode mode);
     OpenMode openMode() const;
 
@@ -52,13 +55,8 @@ public:
     void setFSNode(WFileSystemNode *node);
 
     void forceCache();
-    bool cached=false;
-
-    ~WFile();
 
 signals:
-
-public slots:
 
 };
 

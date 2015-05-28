@@ -8,12 +8,14 @@ class WFileSystemTree : public QObject
     Q_OBJECT
 public:
     explicit WFileSystemTree(WFileSystemNode *rootNode=0,QObject *parent=0);
+    ~WFileSystemTree();
+
+public slots:
     WFileSystemNode* rootNode();
     WFileSystemNode* navigate(QString path);
     void setRootNode(WFileSystemNode*);
     void addChild(WFileSystemNode*);
     QString toJSON();
-    ~WFileSystemTree();
 
 private:
     QPointer<WFileSystemNode> root;

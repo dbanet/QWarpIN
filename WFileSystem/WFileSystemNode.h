@@ -14,12 +14,14 @@ public:
     WFileSystem::types type;
     QDir *dir;
     WFile *file;
+    QList<QPointer<WFileSystemNode> > children;
+    ~WFileSystemNode();
+
+public slots:
     QString getNodeName();
     WFileSystemNode* navigate(QString path);
-    QList<QPointer<WFileSystemNode> > children;
     void addChild(WFileSystemNode*);
     QString toJSON();
-    ~WFileSystemNode();
 
 };
 
