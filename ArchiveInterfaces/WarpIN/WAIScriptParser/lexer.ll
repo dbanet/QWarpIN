@@ -1,20 +1,7 @@
-%option c++
+%option c++ noyywrap nounput batch debug noinput
 
 %{
-#include <cstdio>
-#include <iostream>
-void yyerror(const char *str){
-	std::cout<<"Error: "<<str<<"!"<<std::endl;
-}
-
-int yyFlexLexer::yywrap(){
-        return 1;
-} 
-
-int main(){
-	for(yyFlexLexer l;l.yylex(););
-	return 0;
-}
+#include "parser.h"
 %}
 
  /********************/
