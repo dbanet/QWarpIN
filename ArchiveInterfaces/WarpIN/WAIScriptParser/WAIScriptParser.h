@@ -1,6 +1,8 @@
 #ifndef WAISCRIPTPARSER_H
 #define WAISCRIPTPARSER_H
 #include "globals.h"
+#include <QDomDocument>
+
 class WAIScriptParser
 {
 public:
@@ -9,6 +11,10 @@ public:
 
 private:
     QString wpScript;
+    QDomDocument dom;
+    QDomElement wp;
+    QDomElement body;
+
 };
 
 #endif // WAISCRIPTPARSER_H

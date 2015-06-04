@@ -65,7 +65,7 @@ qint64 WAIFileReader::read(char *data,qint64 maxlen){
         // reading this->bufferSize bytes
         qint64 bytesRead=-1;
         if(!~(bytesRead=arcFile->read(this->inputBuffer,this->bufferSize)))
-                throw new E_WPIAI_FileReadError;
+            throw E_WPIAI_FileReadError();
         this->arcCur+=bytesRead;
         this->compCur+=bytesRead;
         this->z->next_in=this->inputBuffer;
@@ -97,7 +97,7 @@ qint64 WAIFileReader::read(char *data,qint64 maxlen){
             || BZ_DATA_ERROR       == rc
             || BZ_DATA_ERROR_MAGIC == rc
             || BZ_MEM_ERROR        == rc
-            ) throw new E_WPIAI_FileDecompressionError;
+            ) throw E_WPIAI_FileDecompressionError();
 
             // compressed file's end has been reached (all data has been decompressed and is now in this->outputBuffer)
             if(BZ_STREAM_END==rc){
@@ -214,7 +214,7 @@ bool WAIFileReader::seek(qint64 offset){
         // reading this->bufferSize bytes
         qint64 bytesRead=-1;
         if(!~(bytesRead=arcFile->read(this->inputBuffer,this->bufferSize)))
-                throw new E_WPIAI_FileReadError;
+            throw E_WPIAI_FileReadError();
         this->arcCur+=bytesRead;
         this->compCur+=bytesRead;
         this->z->next_in=this->inputBuffer;
@@ -246,7 +246,7 @@ bool WAIFileReader::seek(qint64 offset){
             || BZ_DATA_ERROR       == rc
             || BZ_DATA_ERROR_MAGIC == rc
             || BZ_MEM_ERROR        == rc
-            ) throw new E_WPIAI_FileDecompressionError;
+            ) throw E_WPIAI_FileDecompressionError();
 
             // compressed file's end has been reached (all data has been decompressed)
             if(BZ_STREAM_END==rc){

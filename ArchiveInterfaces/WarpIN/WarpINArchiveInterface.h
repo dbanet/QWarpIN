@@ -4,7 +4,7 @@
 
 #include "../WAbstractArchiveInterface.h"
 #include "WAIFileReader.h"
-#include "WAIScriptParser.h"
+#include "WAIScriptParser/WAIScriptParser.h"
 
 struct WIArcHeader{
 /* 0x0000: */  uchar   v1, v2, v3, v4     ; // archive verification

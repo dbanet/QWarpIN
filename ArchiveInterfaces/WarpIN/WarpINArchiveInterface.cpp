@@ -6,8 +6,8 @@ WarpINArchiveInterface::WarpINArchiveInterface(QFile *archive) :
     this->archive->open(QIODevice::ReadOnly);
     try{
         this->readArcHeaders();
-    } catch(exception *e){
-        qDebug(e->what());
+    } catch(exception &e){
+        qDebug(e.what());
         return;
     }
     qDebug()<<"Minimum WarpIN version:"<<this->ArcHeader.wi_revision_needed;
@@ -44,11 +44,11 @@ void WarpINArchiveInterface::readArcHeaders(){
     /* only for archives with an executable stub in them */
     if(!~(ext4HeaderOffset=this->readTailHeader())) // the tail is not a valid header, searching front (plain .wpi)
         if(!~(ext4HeaderOffset=this->readFrontHeader())) // the archive seems to be invalid
-            throw new E_WPIAI_CannotReadArchiveHeader;
+            throw E_WPIAI_CannotReadArchiveHeader();
 
     /* checking which WarpIN version the archive requests */
     if(this->ArcHeader.wi_revision_needed<3)
-        throw new E_WPIAI_OutdatedArchive;
+        throw E_WPIAI_OutdatedArchive();
     else if(this->ArcHeader.wi_revision_needed==3)
         scriptOffset=ext4HeaderOffset; // no extended headers, the script starts just after the header
     else if(this->ArcHeader.wi_revision_needed==4){
@@ -57,14 +57,14 @@ void WarpINArchiveInterface::readArcHeaders(){
         scriptOffset=sizeof(WIArcHeader)+this->ArcExt4Header.cbSize+this->ArcExt4Header.stubSize;
     }
     else
-        throw new E_WPIAI_UnsupportedArchive;
+        throw E_WPIAI_UnsupportedArchive();
 
     if(!~(extendedDataOffset=this->readScript(scriptOffset)))
-        throw new E_WPIAI_ErrorDecompressingInstallationScript;
+        throw E_WPIAI_ErrorDecompressingInstallationScript();
 
     if(/* we have extended header data */this->ArcHeader.lExtended>0){
         if(!~(packHeadersOffset=this->readExtendedData(extendedDataOffset)))
-            throw new E_WPIAI_ErrorReadingExtendedData;
+            throw E_WPIAI_ErrorReadingExtendedData();
     } else packHeadersOffset=extendedDataOffset;
 
     this->readPackageHeaders(packHeadersOffset);
@@ -195,7 +195,7 @@ qint64 WarpINArchiveInterface::readPackageHeaders(qint64 packHeadersOffset){
 
     int packagesNumber=this->ArcHeader.sPackages;
     if(packagesNumber<0)
-        throw new E_WPIAI_InvalidAmountOfPackagesInArchive;
+        throw E_WPIAI_InvalidAmountOfPackagesInArchive();
 
     while(packagesNumber--){
         WIPackHeader *packHeader=new WIPackHeader;
@@ -223,7 +223,7 @@ WFileSystemTree* WarpINArchiveInterface::createFileStructure(){
     for(auto i=this->packHeadersList.begin();i!=this->packHeadersList.end();++i){
         qint64 filesNumber=(*i)->files;
         if(filesNumber<0)
-            throw new E_WPIAI_InvalidAmountOfFilesInPackage;
+            throw E_WPIAI_InvalidAmountOfFilesInPackage();
 
         qint64 curpos=(*i)->pos;
         while(filesNumber--){
@@ -236,7 +236,7 @@ WFileSystemTree* WarpINArchiveInterface::createFileStructure(){
             );
 
             if(QString(fileHeader.name).size()>MAXPATHLEN)
-                throw new E_WPIAI_MaximumPathLengthExceededWhileReadingFiles;
+                throw E_WPIAI_MaximumPathLengthExceededWhileReadingFiles();
 
             fileList<<fileHeader;
             filePositionsList<<curpos+sizeof(WIFileHeader);
@@ -257,7 +257,7 @@ WFileSystemTree* WarpINArchiveInterface::createFileStructure(){
             if(package->number==i->package)
                 foundPackage=true;
         if(!foundPackage)
-            throw new E_WPIAI_FileBelongsToUndefinedPackage;
+            throw E_WPIAI_FileBelongsToUndefinedPackage();
 
         auto file=new WFile(); // the WFile object for the file
         /* filling in all the information found in the file's header */

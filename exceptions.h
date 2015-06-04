@@ -4,8 +4,7 @@
 #include <exception>
 using std::exception;
 #include "globals.h"
-#define E_DESCR(x) public: virtual const char* what() const throw(){return x;}
-#define E_EXC(x,y) class x : public exception{ E_DESCR(y) }
+#define E_EXC(x,y) class x:public exception{private:std::string why;public:x(){this->why=QObject::tr(y).toStdString();}x(const QString &why){this->why=why.toStdString();}virtual const char* what() const throw(){return this->why.c_str();}}
 
 E_EXC(E_WAI_InstantiationError,
       "An archive interface is unable to instantiate itself.");
@@ -34,13 +33,15 @@ E_EXC(E_WPIAI_FileDecompressionError,
 E_EXC(E_WPIAI_ErrorReadingExtendedData,
       "WarpINArchiveInterface has failed to read the Extended Data information stored in the archive. It is probably corrupted.");
 E_EXC(E_WPIAI_InvalidAmountOfPackagesInArchive,
-      "A WarpIN archive claims to have invalid amount of packages in it. It is probably corrupted.");
+      "The WarpIN archive claims to have invalid amount of packages in it. It is probably corrupted.");
 E_EXC(E_WPIAI_InvalidAmountOfFilesInPackage,
-      "A WarpIN archive claims to have invalid amount of files in one of its packages. It is probably corrupted.");
+      "The WarpIN archive claims to have invalid amount of files in one of its packages. It is probably corrupted.");
 E_EXC(E_WPIAI_MaximumPathLengthExceededWhileReadingFiles,
-      "A WarpIN archive contains a file with path length greater than the maximum length defined at compiletime, MAXPATH=" STRINGIZE(MAXPATH));
+      "The WarpIN archive contains a file with path length greater than the maximum length defined at compiletime, MAXPATH=" STRINGIZE(MAXPATH));
 E_EXC(E_WPIAI_FileBelongsToUndefinedPackage,
-      "A WarpIN archive contains a file claimed to belong to a package never defined in the archive. It is probably corrupted..");
+      "The WarpIN archive contains a file claimed to belong to a package never defined in the archive. It is probably corrupted.");
+E_EXC(E_WPIAI_ScriptParseError,
+      "WarpINArchiveInterface has encountered an error parsing the script of the archive.");
 
 #undef E_DESCR
 #endif // EXCEPTIONS_H

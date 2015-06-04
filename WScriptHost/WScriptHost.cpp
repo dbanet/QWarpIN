@@ -20,14 +20,15 @@ void WScriptHost::setInstallationContext(QString script, WFileSystemTree* files,
     this->engine.globalObject().setProperty("$",hostConstructor.construct()); NGNEXC(this->engine);
 
     QScriptValue installationConstructor=engine.evaluate(this->script); NGNEXC(this->engine);
-    this->installationObject=installationConstructor.construct(QScriptValueList()<<this->engine.newQObject(this->files)<<systemEnvironment); NGNEXC(this->engine);
+    this->installationObject=installationConstructor.construct(QScriptValueList()<<this->engine.newQObject(this->files)
+                                                                                 <<systemEnvironment); NGNEXC(this->engine);
     this->pkgInfo=this->installationObject.property("pkgInfo").call(this->installationObject); NGNEXC(this->engine);
     this->installationObject.property("atInit").call(this->installationObject); NGNEXC(this->engine);
 }
 
 WInstallationInformation WScriptHost::install(){
     if(this->context!=this->installationContext)
-        throw new E_WSH_InvalidContext;
+        throw E_WSH_InvalidContext();
 
     this->systemEnvironment=this->installationObject.property("fillResponse").call(this->installationObject).toString(); NGNEXC(this->engine);
     QString reportScript=this->installationObject.property("install").call(this->installationObject).toString(); NGNEXC(this->engine);

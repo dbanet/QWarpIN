@@ -99,7 +99,7 @@ WFileSystemNode* WFileSystemNode::navigate(QString path){
             ):(
                 child
             );
-    throw new E_WFS_FileNotFound;
+    throw E_WFS_FileNotFound();
 }
 
 QString WFileSystemNode::toJSON(){

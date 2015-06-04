@@ -8,7 +8,7 @@ WArchive::WArchive(QFile *archiveFile,QObject *parent) :
     auto interfaceIDs=interfaces->list();
 
     if(!archiveFile->open(QIODevice::ReadOnly))
-        throw new E_WA_FileNotFound;
+        throw E_WA_FileNotFound();
     else archiveFile->close();
 
     for(auto it=interfaceIDs.begin();it!=interfaceIDs.end();)
@@ -20,8 +20,8 @@ WArchive::WArchive(QFile *archiveFile,QObject *parent) :
             this->interface=0;
             ++it;
         }
-        catch(exception *e){
-            qDebug(e->what());
+        catch(exception &e){
+            qDebug(e.what());
             this->interface=0;
             ++it;
         }
@@ -30,7 +30,7 @@ WArchive::WArchive(QFile *archiveFile,QObject *parent) :
             ++it;
         }
     if(interface.isNull())
-        throw new E_WA_CannotFindSuitableArchiveInterface;
+        throw E_WA_CannotFindSuitableArchiveInterface();
 
     qDebug()<<"The archive is of type"<<this->interface->id();
     qDebug()<<"The archive's name is"<<this->name();
@@ -42,9 +42,14 @@ QFile* WArchive::file(){
     return this->interface->arcFile();
 }
 void WArchive::install(QString systemEnvironment){
-    WScriptHost host;
-    host.setInstallationContext(this->interface->script(),this->interface->files(),systemEnvironment);
-    WInstallationInformation info=host.install();
+    try{
+        WScriptHost host;
+        host.setInstallationContext(this->interface->script(),this->interface->files(),systemEnvironment);
+        WInstallationInformation info=host.install();
+    }
+    catch(exception &e){
+        qDebug(e.what());
+    }
 }
 void WArchive::test(){
 

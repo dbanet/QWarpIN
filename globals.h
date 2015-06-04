@@ -1,6 +1,8 @@
 #ifndef GLOBALS_H
 #define GLOBALS_H
 #include <QDebug>
+#include <QString>
+#include <QObject>
 #include <iostream>
 #include <cassert>
 

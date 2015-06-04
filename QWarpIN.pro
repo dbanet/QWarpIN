@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += core gui script
+QT       += core gui script xml
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -27,7 +27,7 @@ SOURCES += main.cpp\
     WFileSystem/WFile.cpp \
     WScriptHost/WScriptHost.cpp \
     ArchiveInterfaces/WarpIN/WAIFileReader.cpp \
-    ArchiveInterfaces/WarpIN/WAIScriptParser.cpp
+    ArchiveInterfaces/WarpIN/WAIScriptParser/WAIScriptParser.cpp
 
 HEADERS  += WPI.h \
     globals.h \
@@ -43,7 +43,7 @@ HEADERS  += WPI.h \
     WFileSystem/WFile.h \
     WScriptHost/WScriptHost.h \
     ArchiveInterfaces/WarpIN/WAIFileReader.h \
-    ArchiveInterfaces/WarpIN/WAIScriptParser.h
+    ArchiveInterfaces/WarpIN/WAIScriptParser/WAIScriptParser.h
 
 FORMS    += WPI.ui
 
