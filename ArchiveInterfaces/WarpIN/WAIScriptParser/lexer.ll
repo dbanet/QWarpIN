@@ -44,7 +44,7 @@
  /* (contains other tags in it) */
  /*******************************/
 
-\<[ \t\r\n]*WARPIN[ \t\r\n]*                   { yy_push_state(IN_T_WARPIN_BEGIN);
+\<[ \t\r\n]*WARPIN[ \t\r\n]*                   { push_state(StartCondition__::IN_T_WARPIN_BEGIN);
                                                  return T_WARPIN_BEGIN_OPEN; }
 \<[ \t\r\n]*\/[ \t\r\n]*WARPIN[ \t\r\n]*\>       return T_WARPIN_END;
 <IN_T_WARPIN_BEGIN>{
@@ -60,7 +60,7 @@
 	["][^"]*["]                              return T_STRING;
 	['][^']*[']                              return T_STRING;
 	[ \t\r\n]                                ;
-	">"                                    { yy_pop_state();
+	">"                                    { pop_state();
 	                                         return T_WARPN_BEGIN_CLOSE; }
 }
 
@@ -69,7 +69,7 @@
  /* (contains other tags in it) */
  /*******************************/
 
-\<[ \t\r\n]*GROUP[ \t\r\n]*                    { yy_push_state(IN_T_GROUP_BEGIN);
+\<[ \t\r\n]*GROUP[ \t\r\n]*                    { push_state(StartCondition__::IN_T_GROUP_BEGIN);
                                                  return T_GROUP_BEGIN_OPEN; }
 \<[ \t\r\n]*\/[ \t\r\n]*GROUP[ \t\r\n]*\>        return T_GROUP_END;
 <IN_T_GROUP_BEGIN>{
@@ -84,7 +84,7 @@
 	["][^"]*["]                              return T_STRING;
 	['][^']*[']                              return T_STRING;
 	[ \t\r\n]                                ;
-	">"                                    { yy_pop_state();
+	">"                                    { pop_state();
 	                                         return T_GROUP_BEGIN_CLOSE; }
 }
 
@@ -94,13 +94,13 @@
  /*  closing tag is a T_STRING)  */
  /********************************/
 
-\<[ \t\r\n]*VARPROMPT[ \t\r\n]*                { yy_push_state(IN_T_VARPROMPT_BEGIN);
+\<[ \t\r\n]*VARPROMPT[ \t\r\n]*                { push_state(StartCondition__::IN_T_VARPROMPT_BEGIN);
                                                  return T_VARPROMPT_BEGIN_OPEN; }
 <IN_T_VARPROMPT_BEGIN>{
 	/**************************/
 	/* <VARPROMPT> ATTRIBUTES */
 	/**************************/
-	NAME                                   { yy_push_state(IN_T_VARPROMPT_BEGIN_TAT_NAME);
+	NAME                                   { push_state(StartCondition__::IN_T_VARPROMPT_BEGIN_TAT_NAME);
                                                  return TAT_NAME; }
 	TYPE                                     return TAT_TYPE;
 	"="                                      return T_EQUIV;
@@ -113,29 +113,29 @@
 	["]?NUM\([0-9]+\,[0-9]+\)["]?            return TATV_NUMERIC_RANGE;
 	[']?NUM\([0-9]+\,[0-9]+\)[']?            return TATV_NUMERIC_RANGE;
 	[ \t\r\n]                                ;
-	">"                                    { yy_pop_state();
-	                                         yy_push_state(IN_T_VARPROMPT);
+	">"                                    { pop_state();
+	                                         push_state(StartCondition__::IN_T_VARPROMPT);
 	                                         return T_VARPROMPT_BEGIN_CLOSE; }
 }
 
 <IN_T_VARPROMPT_BEGIN_TAT_NAME>{
-	"="                                    { yy_pop_state();
-	                                         yy_push_state(IN_T_VARPROMPT_BEGIN_TAT_NAME_VALUE);
+	"="                                    { pop_state();
+	                                         push_state(StartCondition__::IN_T_VARPROMPT_BEGIN_TAT_NAME_VALUE);
 	                                         return T_EQUIV; }
 }
 
 <IN_T_VARPROMPT_BEGIN_TAT_NAME_VALUE>{
-	["][^"]*["]                            { yy_pop_state();
+	["][^"]*["]                            { pop_state();
 	                                         return T_STRING; }
-	['][^']*[']                            { yy_pop_state();
+	['][^']*[']                            { pop_state();
 	                                         return T_STRING; }
-	[^ ]+                                  { yy_pop_state();
+	[^ ]+                                  { pop_state();
 	                                         return T_STRING; }
 }
 
 <IN_T_VARPROMPT>{
 	\<[ \t\r\n]*\/[ \t\r\n]*VARPROMPT[ \t\r\n]*\> {
-	                                         yy_pop_state();
+	                                         pop_state();
 	                                         return T_VARPROMPT_END; }
 	"<"                                      return T_STRING;
 	[^<]+?/\<                                return T_STRING;
@@ -146,7 +146,7 @@
  /* (contains other tags in it) */
  /*******************************/
 
-\<[ \t\r\n]*PAGE[ \t\r\n]*                     { yy_push_state(IN_T_PAGE_BEGIN);
+\<[ \t\r\n]*PAGE[ \t\r\n]*                     { push_state(StartCondition__::IN_T_PAGE_BEGIN);
                                                  return T_PAGE_BEGIN_OPEN; }
 \<[ \t\r\n]*\/[ \t\r\n]*PAGE[ \t\r\n]*\>         return T_PAGE_END;
 <IN_T_PAGE_BEGIN>{
@@ -167,7 +167,7 @@
 	["]?CONFIGURE["]?                        return TATV_CONFIGURE;
 	[']?CONFIGURE[']?                        return TATV_CONFIGURE;
 	[ \t\r\n]                                ;
-	">"                                    { yy_pop_state();
+	">"                                    { pop_state();
 	                                         return T_PAGE_BEGIN_CLOSE; }
 }
 
@@ -178,11 +178,11 @@
  /*          tag is a T_STRING) */
  /*******************************/
 
-\<[ \t\r\n]*MSG[ \t\r\n]*\>                    { yy_push_state(IN_T_MSG);
+\<[ \t\r\n]*MSG[ \t\r\n]*\>                    { push_state(StartCondition__::IN_T_MSG);
                                                  return T_MSG_BEGIN; }
 <IN_T_MSG>{
 	\<[ \t\r\n]*\/[ \t\r\n]*MSG[ \t\r\n]*\> {
-	                                         yy_pop_state();
+	                                         pop_state();
 	                                         return T_MSG_END; }
 	"<"                                      return T_STRING;
 	[^<]+?/\<                                return T_STRING;
@@ -195,11 +195,11 @@
  /*          tag is a T_STRING) */
  /*******************************/
 
-\<[ \t\r\n]*TEXT[ \t\r\n]*\>                   { yy_push_state(IN_T_TEXT);
+\<[ \t\r\n]*TEXT[ \t\r\n]*\>                   { push_state(StartCondition__::IN_T_TEXT);
                                                  return T_TEXT_BEGIN; }
 <IN_T_TEXT>{
 	\<[ \t\r\n]*\/[ \t\r\n]*TEXT[ \t\r\n]*\> {
-	                                         yy_pop_state();
+	                                         pop_state();
 	                                         return T_TEXT_END; }
 	"<"                                      return T_STRING;
 	[^<]+?/\<                                return T_STRING;
@@ -212,11 +212,11 @@
  /*          tag is a T_STRING) */
  /*******************************/
 
-\<[ \t\r\n]*TITLE[ \t\r\n]*\>                  { yy_push_state(IN_T_TITLE);
+\<[ \t\r\n]*TITLE[ \t\r\n]*\>                  { push_state(StartCondition__::IN_T_TITLE);
                                                  return T_TITLE_BEGIN; }
 <IN_T_TITLE>{
 	\<[ \t\r\n]*\/[ \t\r\n]*TITLE[ \t\r\n]*\> {
-	                                         yy_pop_state();
+	                                         pop_state();
 	                                         return T_TITLE_END; }
 	"<"                                      return T_STRING;
 	[^<]+?/\<                                return T_STRING;
@@ -228,7 +228,7 @@
  /*  closing tag is a T_STRING)  */
  /********************************/
 
-\<[ \t\r\n]*NEXTBUTTON[ \t\r\n]*               { yy_push_state(IN_T_NEXTBUTTON_BEGIN);
+\<[ \t\r\n]*NEXTBUTTON[ \t\r\n]*               { push_state(StartCondition__::IN_T_NEXTBUTTON_BEGIN);
                                                  return T_NEXTBUTTON_BEGIN_OPEN; }
 <IN_T_NEXTBUTTON_BEGIN>{
 	/***************************/
@@ -239,14 +239,14 @@
 	["]?[0-9]+["]?                           return T_NUMBER;
 	[']?[0-9]+[']?                           return T_NUMBER;
 	[ \t\r\n]                                ;
-	">"                                    { yy_pop_state();
-	                                         yy_push_state(IN_T_NEXTBUTTON);
+	">"                                    { pop_state();
+	                                         push_state(StartCondition__::IN_T_NEXTBUTTON);
 	                                         return T_NEXTBUTTON_BEGIN_CLOSE; }
 }
 
 <IN_T_NEXTBUTTON>{
 	\<[ \t\r\n]*\/[ \t\r\n]*NEXTBUTTON[ \t\r\n]*\> {
-	                                         yy_pop_state();
+	                                         pop_state();
 	                                         return T_NEXTBUTTON_END; }
 	"<"                                      return T_STRING;
 	[^<]+?/\<                                return T_STRING;
@@ -258,7 +258,7 @@
  /*  closing tag is a T_STRING)  */
  /********************************/
 
-\<[ \t\r\n]*README[ \t\r\n]*                   { yy_push_state(IN_T_README_BEGIN);
+\<[ \t\r\n]*README[ \t\r\n]*                   { push_state(StartCondition__::IN_T_README_BEGIN);
                                                  return T_README_BEGIN_OPEN; }
 <IN_T_README_BEGIN>{
 	/***********************/
@@ -276,14 +276,14 @@
 	["]?HTML["]?                             return TATV_HTML;
 	[']?HTML[']?                             return TATV_HTML;
 	[ \t\r\n]                                ;
-	">"                                    { yy_pop_state();
-	                                         yy_push_state(IN_T_README);
+	">"                                    { pop_state();
+	                                         push_state(StartCondition__::IN_T_README);
 	                                         return T_README_BEGIN_CLOSE; }
 }
 
 <IN_T_README>{
 	\<[ \t\r\n]*\/[ \t\r\n]*README[ \t\r\n]*\> {
-	                                         yy_pop_state();
+	                                         pop_state();
 	                                         return T_README_END; }
 	"<"                                      return T_STRING;
 	[^<]+?/\<                                return T_STRING;
@@ -295,7 +295,7 @@
  /*  closing tag is a T_STRING)  */
  /********************************/
 
-\<[ \t\r\n]*PCK[ \t\r\n]*                      { yy_push_state(IN_T_PCK_BEGIN);
+\<[ \t\r\n]*PCK[ \t\r\n]*                      { push_state(StartCondition__::IN_T_PCK_BEGIN);
                                                  return T_PCK_BEGIN_OPEN; }
 <IN_T_PCK_BEGIN>{
 	/********************/
@@ -328,14 +328,14 @@
 	["][^"]*["]                              return T_STRING;
 	['][^']*[']                              return T_STRING;
 	[ \t\r\n]                                ;
-	">"                                    { yy_pop_state();
-	                                         yy_push_state(IN_T_PCK);
+	">"                                    { pop_state();
+	                                         push_state(StartCondition__::IN_T_PCK);
 	                                         return T_PCK_BEGIN_CLOSE; }
 }
 
 <IN_T_PCK>{
 	\<[ \t\r\n]*\/[ \t\r\n]*PCK[ \t\r\n]*\> {
-	                                         yy_pop_state();
+	                                         pop_state();
 	                                         return T_PCK_END; }
 	"<"                                      return T_STRING;
 	[^<]+?/\<                                return T_STRING;
@@ -347,7 +347,7 @@
  /*  closing tag is a T_STRING)  */
  /********************************/
 
-\<[ \t\r\n]*REXX[ \t\r\n]*                     { yy_push_state(IN_T_REXX_BEGIN);
+\<[ \t\r\n]*REXX[ \t\r\n]*                     { push_state(StartCondition__::IN_T_REXX_BEGIN);
                                                  return T_README_REXX_OPEN; }
 <IN_T_REXX_BEGIN>{
 	/*********************/
@@ -358,14 +358,14 @@
 	["][^"]*["]                              return T_STRING;
 	['][^']*[']                              return T_STRING;
 	[ \t\r\n]                                ;
-	">"                                    { yy_pop_state();
-	                                         yy_push_state(IN_T_REXX);
+	">"                                    { pop_state();
+	                                         push_state(StartCondition__::IN_T_REXX);
 	                                         return T_REXX_BEGIN_CLOSE; }
 }
 
 <IN_T_REXX>{
 	\<[ \t\r\n]*\/[ \t\r\n]*REXX[ \t\r\n]*\> {
-	                                         yy_pop_state();
+	                                         pop_state();
 	                                         return T_REXX_END; }
 	"<"                                      return T_STRING;
 	[^<]+?/\<                                return T_STRING;
@@ -377,10 +377,10 @@
  /*  closing tag is ignored)     */
  /********************************/
 
-"<!--"                                         { yy_push_state(IN_T_COMMENT);
+"<!--"                                         { push_state(StartCondition__::IN_T_COMMENT);
                                                  return T_COMMENT_BEGIN; }
 <IN_T_COMMENT>{
-	"-->"                                  { yy_pop_state();
+	"-->"                                  { pop_state();
 	                                         return T_COMMENT_END; }
 	"-"                                      ;
 	[^-]+?/-                                 ;
