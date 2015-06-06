@@ -16,7 +16,7 @@ WArchive::WArchive(QFile *archiveFile,QObject *parent) :
             this->interface=interfaces->get(*it)(archiveFile);
             break;
         }
-        catch(E_WAI_InstantiationError){
+        catch(E_WAI_InstantiationError&){
             this->interface=0;
             ++it;
         }

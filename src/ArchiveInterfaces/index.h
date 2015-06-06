@@ -1,7 +1,7 @@
 #ifndef INDEX_H
 #define INDEX_H
 #include "WAbstractArchiveInterface.h"
-#include "../GenericObjectFactory.h"
+#include "GenericObjectFactory.h"
 
 typedef GenericObjectFactory<QString,WAbstractArchiveInterface,QFile*> WArchiveInterfaceFactory;
 WArchiveInterfaceFactory* getArchiveInterfaces();
