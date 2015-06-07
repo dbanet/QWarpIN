@@ -1,0 +1,20 @@
+#include <iostream>
+using namespace std;
+
+#include "Parser.h"
+
+inline void Parser::error(char const *msg){
+	cerr<<msg<<endl;
+}
+
+inline int Parser::lex(){
+	return scanner.lex();
+}
+
+inline void Parser::print(){
+	print__();
+}
+
+inline void Parser::exceptionHandler__(std::exception const &exc){
+	throw; // re-implement to handle exceptions thrown by actions
+}
