@@ -198,7 +198,13 @@ ADD_CUSTOM_TARGET (
             ${CMAKE_CURRENT_BINARY_DIR}/Scanner.h
             ${CMAKE_CURRENT_BINARY_DIR}/Scanner.ih
             ${CMAKE_CURRENT_BINARY_DIR}/Parser.h
-            ${CMAKE_CURRENT_BINARY_DIR}/Parser.ih)
+            ${CMAKE_CURRENT_BINARY_DIR}/Parser.ih
+    SOURCES ${CMAKE_SOURCE_DIR}/src/ArchiveInterfaces/WarpIN/WAIScriptParser/lexer.ll
+            ${CMAKE_SOURCE_DIR}/src/ArchiveInterfaces/WarpIN/WAIScriptParser/parser.yy
+            ${CMAKE_SOURCE_DIR}/src/ArchiveInterfaces/WarpIN/WAIScriptParser/Scanner.h
+            ${CMAKE_SOURCE_DIR}/src/ArchiveInterfaces/WarpIN/WAIScriptParser/Scanner.ih
+            ${CMAKE_SOURCE_DIR}/src/ArchiveInterfaces/WarpIN/WAIScriptParser/Parser.h
+            ${CMAKE_SOURCE_DIR}/src/ArchiveInterfaces/WarpIN/WAIScriptParser/Parser.ih)
 
 #######################################
 ##        PREPARE BUILD TREE         ##
