@@ -1,11 +1,15 @@
 #include "WAIScriptParser.h"
 #include "Parser.h"
+#include <sstream>
 
 WAIScriptParser::WAIScriptParser(QString WarpINScript):
-    wpScript(WarpINScript)
-{}
+    wpScript(WarpINScript){
+    this->wpScriptStream=new std::istringstream(this->wpScript.toStdString());
+    this->parser=new Parser(*this->wpScriptStream,this);
+}
 
 QString WAIScriptParser::translate(){
+    this->parser->parse();
     return QString(R"HEREDOC(
         (function(){
             var Package=function(fs,systemEnvironment){
@@ -31,4 +35,8 @@ QString WAIScriptParser::translate(){
             return Package;
         })()
     )HEREDOC");
+}
+
+WAIScriptParser::~WAIScriptParser(){
+    delete this->parser;
 }

@@ -3,17 +3,19 @@
 #include "globals.h"
 #include <QDomDocument>
 
+class Parser;
+
 class WAIScriptParser
 {
 public:
     WAIScriptParser(QString WarpINScript);
     QString translate();
+    ~WAIScriptParser();
 
 private:
     QString wpScript;
-    QDomDocument dom;
-    QDomElement wp;
-    QDomElement body;
+    std::istringstream *wpScriptStream;
+    Parser *parser;
 
 };
 

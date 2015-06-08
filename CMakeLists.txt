@@ -161,22 +161,22 @@ ADD_DEPENDENCIES (lng bld)
 
 ADD_CUSTOM_COMMAND (
     OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/Scanner.h
-    COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/src/ArchiveInterfaces/WarpIN/WAIScriptParser/Scanner.h ${CMAKE_CURRENT_BINARY_DIR}/Scanner.h
+    COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/src/ArchiveInterfaces/WarpIN/WAIScriptParser/Scanner.h" "${CMAKE_CURRENT_BINARY_DIR}/Scanner.h"
     DEPENDS ${CMAKE_SOURCE_DIR}/src/ArchiveInterfaces/WarpIN/WAIScriptParser/Scanner.h)
 
 ADD_CUSTOM_COMMAND (
     OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/Scanner.ih
-    COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/src/ArchiveInterfaces/WarpIN/WAIScriptParser/Scanner.ih ${CMAKE_CURRENT_BINARY_DIR}/Scanner.ih
+    COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/src/ArchiveInterfaces/WarpIN/WAIScriptParser/Scanner.ih" "${CMAKE_CURRENT_BINARY_DIR}/Scanner.ih"
     DEPENDS ${CMAKE_SOURCE_DIR}/src/ArchiveInterfaces/WarpIN/WAIScriptParser/Scanner.ih)
 
 ADD_CUSTOM_COMMAND (
     OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/Parser.h
-    COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/src/ArchiveInterfaces/WarpIN/WAIScriptParser/Parser.h ${CMAKE_CURRENT_BINARY_DIR}/Parser.h
+    COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/src/ArchiveInterfaces/WarpIN/WAIScriptParser/Parser.h" "${CMAKE_CURRENT_BINARY_DIR}/Parser.h"
     DEPENDS ${CMAKE_SOURCE_DIR}/src/ArchiveInterfaces/WarpIN/WAIScriptParser/Parser.h)
 
 ADD_CUSTOM_COMMAND (
     OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/Parser.ih
-    COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/src/ArchiveInterfaces/WarpIN/WAIScriptParser/Parser.ih ${CMAKE_CURRENT_BINARY_DIR}/Parser.ih
+    COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/src/ArchiveInterfaces/WarpIN/WAIScriptParser/Parser.ih" "${CMAKE_CURRENT_BINARY_DIR}/Parser.ih"
     DEPENDS ${CMAKE_SOURCE_DIR}/src/ArchiveInterfaces/WarpIN/WAIScriptParser/Parser.ih)
 
 ADD_CUSTOM_COMMAND (
@@ -193,18 +193,20 @@ ADD_CUSTOM_COMMAND (
 
 ADD_CUSTOM_TARGET (
     WAIScriptParser
-    DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/lex.cc
-            ${CMAKE_CURRENT_BINARY_DIR}/parse.cc
-            ${CMAKE_CURRENT_BINARY_DIR}/Scanner.h
+    DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/Scanner.h
             ${CMAKE_CURRENT_BINARY_DIR}/Scanner.ih
             ${CMAKE_CURRENT_BINARY_DIR}/Parser.h
             ${CMAKE_CURRENT_BINARY_DIR}/Parser.ih
+            ${CMAKE_CURRENT_BINARY_DIR}/lex.cc
+            ${CMAKE_CURRENT_BINARY_DIR}/parse.cc
     SOURCES ${CMAKE_SOURCE_DIR}/src/ArchiveInterfaces/WarpIN/WAIScriptParser/lexer.ll
             ${CMAKE_SOURCE_DIR}/src/ArchiveInterfaces/WarpIN/WAIScriptParser/parser.yy
             ${CMAKE_SOURCE_DIR}/src/ArchiveInterfaces/WarpIN/WAIScriptParser/Scanner.h
             ${CMAKE_SOURCE_DIR}/src/ArchiveInterfaces/WarpIN/WAIScriptParser/Scanner.ih
             ${CMAKE_SOURCE_DIR}/src/ArchiveInterfaces/WarpIN/WAIScriptParser/Parser.h
             ${CMAKE_SOURCE_DIR}/src/ArchiveInterfaces/WarpIN/WAIScriptParser/Parser.ih)
+
+SET (WAIScriptParser_CXX ${CMAKE_CURRENT_BINARY_DIR}/lex.cc ${CMAKE_CURRENT_BINARY_DIR}/parse.cc)
 
 #######################################
 ##        PREPARE BUILD TREE         ##
@@ -222,7 +224,7 @@ ADD_CUSTOM_COMMAND (
 ##             BUILDING              ##
 #######################################
 
-ADD_EXECUTABLE (${BUILD_ROOT}/${BINARY_NAME} ${HEADERS} ${SOURCES} ${MOC_FORMS} ${MOC_SOURCES} ${QRC_SOURCES})
+ADD_EXECUTABLE (${BUILD_ROOT}/${BINARY_NAME} ${HEADERS} ${SOURCES} ${MOC_FORMS} ${MOC_SOURCES} ${QRC_SOURCES} ${WAIScriptParser_CXX})
 # no lng for now ADD_DEPENDENCIES (${BUILD_ROOT}/${BINARY_NAME} bld lng WAIScriptParser)
 ADD_DEPENDENCIES (${BUILD_ROOT}/${BINARY_NAME} bld WAIScriptParser)
 TARGET_LINK_LIBRARIES (${BUILD_ROOT}/${BINARY_NAME} ${LIBRARIES} ${QT_LIBRARIES})

@@ -3,18 +3,22 @@ using namespace std;
 
 #include "Parser.h"
 
+Parser::Parser(std::istream &in,WAIScriptParser *self):
+    scanner(in),out(self)
+{}
+
 inline void Parser::error(char const *msg){
-	cerr<<msg<<endl;
+    cerr<<"whha?.. "<<msg<<endl;
 }
 
 inline int Parser::lex(){
-	return scanner.lex();
+        return scanner.lex();
 }
 
 inline void Parser::print(){
-	print__();
+        print__();
 }
 
 inline void Parser::exceptionHandler__(std::exception const &exc){
-	throw; // re-implement to handle exceptions thrown by actions
+        throw; // re-implement to handle exceptions thrown by actions
 }
