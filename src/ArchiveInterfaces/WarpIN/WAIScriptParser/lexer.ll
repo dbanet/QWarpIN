@@ -61,7 +61,7 @@
 	['][^']*[']                              return Parser::T_STRING;
 	[ \t\r\n]                                ;
 	">"                                    { pop_state();
-	                                         return Parser::T_WARPN_BEGIN_CLOSE; }
+						 return Parser::T_WARPIN_BEGIN_CLOSE; }
 }
 
  /*******************************/
@@ -265,7 +265,7 @@
 	/* <README> ATTRIBUTES */
 	/***********************/
 	FORMAT                                   return Parser::TAT_FORMAT;
-	EXTRACTFROMPCK                           return Parser::TAT_FORMAT;
+	EXTRACTFROMPCK                           return Parser::TAT_EXTRACTFROMPCK;
 	"="                                      return Parser::T_EQUIV;
 	["]?[0-9]+["]?                           return Parser::T_NUMBER;
 	[']?[0-9]+[']?                           return Parser::T_NUMBER;
@@ -348,7 +348,7 @@
  /********************************/
 
 \<[ \t\r\n]*REXX[ \t\r\n]*                     { push_state(StartCondition__::IN_T_REXX_BEGIN);
-                                                 return Parser::T_README_REXX_OPEN; }
+						 return Parser::T_REXX_OPEN; }
 <IN_T_REXX_BEGIN>{
 	/*********************/
 	/* <REXX> ATTRIBUTES */
@@ -378,10 +378,10 @@
  /********************************/
 
 "<!--"                                         { push_state(StartCondition__::IN_T_COMMENT);
-                                                 return Parser::T_COMMENT_BEGIN; }
+						 /* return Parser::T_COMMENT_BEGIN */; }
 <IN_T_COMMENT>{
 	"-->"                                  { pop_state();
-	                                         return Parser::T_COMMENT_END; }
+						 /* return Parser::T_COMMENT_END */; }
 	"-"                                      ;
 	[^-]+?/-                                 ;
 }
