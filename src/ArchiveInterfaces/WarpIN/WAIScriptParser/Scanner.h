@@ -8,7 +8,7 @@ class Scanner: public ScannerBase{
 public:
 	explicit Scanner(std::istream &in=std::cin,std::ostream &out=std::cout);
 	Scanner(std::string const &infile,std::string const &outfile);
-        int lex();
+	int lex();
 
 private:
 	int lex__();
@@ -20,11 +20,11 @@ private:
 
 	void print();
 	void preCode(); // re-implement this function for code that must 
-	                // be exec'ed before the patternmatching starts
+					// be exec'ed before the patternmatching starts
 
 	void postCode(PostEnum__ type);    
-	                // re-implement this function for code that must 
-	                // be exec'ed after the rules's actions.
+					// re-implement this function for code that must 
+					// be exec'ed after the rules's actions.
 };
 
 inline Scanner::Scanner(std::istream &in,std::ostream &out)

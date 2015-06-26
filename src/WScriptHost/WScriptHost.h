@@ -9,35 +9,35 @@
 
 class WScriptHost : public QObject
 {
-    Q_OBJECT
+	Q_OBJECT
 public:
-    explicit WScriptHost(QObject *parent = 0);
-    void setInstallationContext(QString script,WFileSystemTree* files,QString systemEnvironment);
-    WInstallationInformation install();
+	explicit WScriptHost(QObject *parent = 0);
+	void setInstallationContext(QString script,WFileSystemTree* files,QString systemEnvironment);
+	WInstallationInformation install();
 
 signals:
 
 public slots:
 
 private:
-    QScriptEngine engine;
-    static QScriptValue log(QScriptContext *context,QScriptEngine *engine);
-    enum {
-        freestandingContext,installationContext,responseContext
-    } context;
-    QString script;
-    WFileSystemTree* files;
-    QString systemEnvironment;
-    QScriptValue installationObject;
-    QScriptValue pkgInfo;
+	QScriptEngine engine;
+	static QScriptValue log(QScriptContext *context,QScriptEngine *engine);
+	enum {
+		freestandingContext,installationContext,responseContext
+	} context;
+	QString script;
+	WFileSystemTree* files;
+	QString systemEnvironment;
+	QScriptValue installationObject;
+	QScriptValue pkgInfo;
 
-    /* conversion functions */
-    static QScriptValue WFileToScriptValue(QScriptEngine *engine,WFile* const &in);
-    static void WFileFromScriptValue(const QScriptValue &object,WFile* &out);
-    static QScriptValue WFileSystemTreeToScriptValue(QScriptEngine *engine,WFileSystemTree* const &in);
-    static void WFileSystemTreeFromScriptValue(const QScriptValue &object,WFileSystemTree* &out);
-    static QScriptValue WFileSystemNodeToScriptValue(QScriptEngine *engine,WFileSystemNode* const &in);
-    static void WFileSystemNodeFromScriptValue(const QScriptValue &object,WFileSystemNode* &out);
+	/* conversion functions */
+	static QScriptValue WFileToScriptValue(QScriptEngine *engine,WFile* const &in);
+	static void WFileFromScriptValue(const QScriptValue &object,WFile* &out);
+	static QScriptValue WFileSystemTreeToScriptValue(QScriptEngine *engine,WFileSystemTree* const &in);
+	static void WFileSystemTreeFromScriptValue(const QScriptValue &object,WFileSystemTree* &out);
+	static QScriptValue WFileSystemNodeToScriptValue(QScriptEngine *engine,WFileSystemNode* const &in);
+	static void WFileSystemNodeFromScriptValue(const QScriptValue &object,WFileSystemNode* &out);
 
 };
 

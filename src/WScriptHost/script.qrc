@@ -1,5 +1,5 @@
 <RCC>
-    <qresource prefix="/WSH" lang="ECMAScript">
-        <file>js/Host.js</file>
-    </qresource>
+	<qresource prefix="/WSH" lang="ECMAScript">
+		<file>js/Host.js</file>
+	</qresource>
 </RCC>

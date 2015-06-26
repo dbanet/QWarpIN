@@ -8,13 +8,13 @@
 
 class WAbstractArchiveInterface : public QObject
 {
-    Q_OBJECT
+	Q_OBJECT
 public:
-    virtual QString id() const=0;
-    virtual QString arcName() const=0;
-    virtual QFile* arcFile() const=0;
-    virtual WFileSystemTree* files()=0;
-    virtual QString script()=0;
+	virtual QString id() const=0;
+	virtual QString arcName() const=0;
+	virtual QFile* arcFile() const=0;
+	virtual WFileSystemTree* files()=0;
+	virtual QString script()=0;
 
 signals:
 

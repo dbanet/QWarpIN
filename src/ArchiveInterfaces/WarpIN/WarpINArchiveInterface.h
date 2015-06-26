@@ -22,11 +22,11 @@ struct WIArcHeader{
 };
 
 struct WIArcExt4Header{
-    long  cbSize                          ; // size of extended header
-    long  stubSize                        ; // size of stub
-    long  lReserved1,lReserved2,lReserved3,
-          lReserved4,lReserved5,lReserved6,
-          lReserved7,lReserved8           ;
+	long  cbSize                          ; // size of extended header
+	long  stubSize                        ; // size of stub
+	long  lReserved1,lReserved2,lReserved3,
+	      lReserved4,lReserved5,lReserved6,
+	      lReserved7,lReserved8           ;
 };
 
 /*!
@@ -43,17 +43,17 @@ struct WIArcExt4Header{
  * data, whose size is stored in the "compsize" member.
  */
 struct WIFileHeader{
-    ushort magic           ; // must be WIFH_MAGIC for security
-    short  checksum        ; // header checksum
-    short  method          ; // compression method used  (0=stored (use WIArchive::Extract); 1=compressed (use WIArchive::Expand))
-    short  package         ; // which package it belongs to
-    long   origsize        ; // size of file (original)
-    long   compsize        ; // size of file (compressed)
-    ulong  crc             ; // file CRC checksum
-    char   name[MAXPATHLEN]; // filename (*UM#3)
-    ulong  lastwrite       ; // file's last write date/time (req. time.h) (*UM#3)
-    ulong  creation        ; // file's creation date/time (req. time.h) (*UM#3)
-    char   extended        ; // size of extended information (if any)
+	ushort magic           ; // must be WIFH_MAGIC for security
+	short  checksum        ; // header checksum
+	short  method          ; // compression method used  (0=stored (use WIArchive::Extract); 1=compressed (use WIArchive::Expand))
+	short  package         ; // which package it belongs to
+	long   origsize        ; // size of file (original)
+	long   compsize        ; // size of file (compressed)
+	ulong  crc             ; // file CRC checksum
+	char   name[MAXPATHLEN]; // filename (*UM#3)
+	ulong  lastwrite       ; // file's last write date/time (req. time.h) (*UM#3)
+	ulong  creation        ; // file's creation date/time (req. time.h) (*UM#3)
+	char   extended        ; // size of extended information (if any)
 } __attribute((packed));
 
 /*!
@@ -61,21 +61,21 @@ struct WIFileHeader{
  * This is stored in binary in the archive.
  */
 struct WIPackHeader{
-    short number  ; // Package number
-    short files   ; // Number of files in package
-    long  pos     ; // Position of first WIFileHeader for this package in archive
-    long  origsize; // Size of package (original)
-    long  compsize; // Size of package (compressed)
-    char  name[32]; // Name of package
+	short number  ; // Package number
+	short files   ; // Number of files in package
+	long  pos     ; // Position of first WIFileHeader for this package in archive
+	long  origsize; // Size of package (original)
+	long  compsize; // Size of package (compressed)
+	char  name[32]; // Name of package
 };
 
 /*!
  * A structure representing a file in an archive.
  */
 struct WIFile{
-    char  *name  ; // Name of file
-    char  *extra ; // Possible extra information
-    short package; // Which package it belongs to
+	char  *name  ; // Name of file
+	char  *extra ; // Possible extra information
+	short package; // Which package it belongs to
 };
 
 const unsigned char  WI_VERIFY1=0x77  ; // the first four
@@ -87,34 +87,34 @@ const unsigned short WIFH_MAGIC=0xF012; // any value for "magic" in file header
 class WarpINArchiveInterface : public WAbstractArchiveInterface
 {
 public:
-    WarpINArchiveInterface(QFile*);
-    QString id() const;
-    QString arcName() const;
-    QFile* arcFile() const;
-    WFileSystemTree* files();
-    QString script();
-    ~WarpINArchiveInterface();
+	WarpINArchiveInterface(QFile*);
+	QString id() const;
+	QString arcName() const;
+	QFile* arcFile() const;
+	WFileSystemTree* files();
+	QString script();
+	~WarpINArchiveInterface();
 
 private:
-    QFile*                archive;
-    WIArcHeader           ArcHeader;
-    WIArcExt4Header       ArcExt4Header;
-    char*                 extendedData;
-    QString               scr;
-    QList<WIPackHeader*>  packHeadersList;
+	QFile*                    archive;
+	WIArcHeader               ArcHeader;
+	WIArcExt4Header           ArcExt4Header;
+	char*                     extendedData;
+	QString                   scr;
+	QList<WIPackHeader*>      packHeadersList;
 
-    void                  readArcHeaders();
-    qint64                readTailHeader();
-    qint64                readFrontHeader();
-    qint64                readExt4Header(qint64);
-    qint64                readExtendedData(qint64);
-    bool                  verifyArcHeader();
-    qint64                readScript(qint64);
-    qint64                readPackageHeaders(qint64);
+	void                      readArcHeaders();
+	qint64                    readTailHeader();
+	qint64                    readFrontHeader();
+	qint64                    readExt4Header(qint64);
+	qint64                    readExtendedData(qint64);
+	bool                      verifyArcHeader();
+	qint64                    readScript(qint64);
+	qint64                    readPackageHeaders(qint64);
 
-    WFileSystemTree*          createFileStructure();
-    WFileSystemNode*          parseFilePathToFSNode(QString,QString,WFile*);
-    QPointer<WFileSystemTree> fs;
+	WFileSystemTree*          createFileStructure();
+	WFileSystemNode*          parseFilePathToFSNode(QString,QString,WFile*);
+	QPointer<WFileSystemTree> fs;
 };
 
 #endif // WARPINARCHIVEINTERFACE_H

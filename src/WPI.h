@@ -10,18 +10,18 @@ class WPI;
 
 class WPI : public QMainWindow
 {
-    Q_OBJECT
+	Q_OBJECT
 
 public:
-    explicit WPI(QWidget *parent = 0);
-    WArchive *arc;
-    ~WPI();
+	explicit WPI(QWidget *parent = 0);
+	WArchive *arc;
+	~WPI();
 
 private slots:
-    void on_actionTest_triggered();
+	void on_actionTest_triggered();
 
 private:
-    Ui::WPI *ui;
+	Ui::WPI *ui;
 };
 
 #endif // WPI_H

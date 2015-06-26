@@ -15,9 +15,9 @@ class WFileSystemTree;
 class WFileSystemNode;
 class WFile;
 namespace WFileSystem{
-    typedef enum{
-        directory,file
-    } types;
+	typedef enum{
+		directory,file
+	} types;
 }
 #include "WFileSystemTree.h"
 #include "WFileSystemNode.h"

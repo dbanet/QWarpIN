@@ -8,14 +8,14 @@ class Parser;
 class WAIScriptParser
 {
 public:
-    WAIScriptParser(QString WarpINScript);
-    QString translate();
-    ~WAIScriptParser();
+	WAIScriptParser(QString WarpINScript);
+	QString translate();
+	~WAIScriptParser();
 
 private:
-    QString wpScript;
-    std::istringstream *wpScriptStream;
-    Parser *parser;
+	QString wpScript;
+	std::istringstream *wpScriptStream;
+	Parser *parser;
 
 };
 

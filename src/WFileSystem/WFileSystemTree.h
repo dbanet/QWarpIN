@@ -5,20 +5,20 @@
 
 class WFileSystemTree : public QObject
 {
-    Q_OBJECT
+	Q_OBJECT
 public:
-    explicit WFileSystemTree(WFileSystemNode *rootNode=0,QObject *parent=0);
-    ~WFileSystemTree();
+	explicit WFileSystemTree(WFileSystemNode *rootNode=0,QObject *parent=0);
+	~WFileSystemTree();
 
 public slots:
-    WFileSystemNode* rootNode();
-    WFileSystemNode* navigate(QString path);
-    void setRootNode(WFileSystemNode*);
-    void addChild(WFileSystemNode*);
-    QString toJSON();
+	WFileSystemNode* rootNode();
+	WFileSystemNode* navigate(QString path);
+	void setRootNode(WFileSystemNode*);
+	void addChild(WFileSystemNode*);
+	QString toJSON();
 
 private:
-    QPointer<WFileSystemNode> root;
+	QPointer<WFileSystemNode> root;
 
 };
 

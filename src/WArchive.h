@@ -10,23 +10,23 @@
 
 class WInstallationInformation{
 public:
-    explicit WInstallationInformation(QString packageID,QString reportScript):packageID(packageID),reportScript(reportScript){}
-    QString packageID;
-    QString reportScript;
+	explicit WInstallationInformation(QString packageID,QString reportScript):packageID(packageID),reportScript(reportScript){}
+	QString packageID;
+	QString reportScript;
 };
 
 class WArchive : public QObject
 {
-    Q_OBJECT
+	Q_OBJECT
 public:
-    explicit WArchive(QFile *archive,QObject *parent = 0);
-    QString name();
-    QFile *file();
-    void install(QString systemEnvironment);
-    void test();
+	explicit WArchive(QFile *archive,QObject *parent = 0);
+	QString name();
+	QFile *file();
+	void install(QString systemEnvironment);
+	void test();
 
 private:
-    QPointer<WAbstractArchiveInterface> interface;
+	QPointer<WAbstractArchiveInterface> interface;
 
 signals:
 
