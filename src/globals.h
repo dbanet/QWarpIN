@@ -5,6 +5,11 @@
 #include <QObject>
 #include <iostream>
 #include <cassert>
+#include <cstring>
+#include <cstdlib>
+#include <cstdio>
+
+#include "timestamp.h"
 
 #define MAXPATHLEN 256
 #define DEFAULT_BUFFER_SIZE 1048576

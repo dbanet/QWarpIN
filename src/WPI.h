@@ -20,8 +20,17 @@ public:
 private slots:
 	void on_actionTest_triggered();
 
+public slots:
+	void run();
+	void aboutToQuit();
+
+signals:
+	void finished();
+
 private:
 	Ui::WPI *ui;
+	QTextStream out;
+	void quit(int rc);
 };
 
 #endif // WPI_H
