@@ -113,7 +113,7 @@ IF (OS2)
     # for OS/2, turning on highmem support
     ADD_COMPILE_OPTIONS (-Zhigh-mem)
     # and linking against stdcpp6.dll
-    APPEND (LIBRARIES stdc++)
+    #APPEND (LIBRARIES stdc++)
     # and fixing search
     SET (CMAKE_PREFIX_PATH "/@unixroot/usr")
     SET (CMAKE_FIND_LIBRARY_PREFIXES "lib" "")
@@ -138,9 +138,9 @@ FIND_PACKAGE (BZip2 REQUIRED)
 INCLUDE_DIRECTORIES (${BZIP_INCLUDE_DIRS})
 APPEND (LIBRARIES ${BZIP2_LIBRARIES})
 
-FIND_PACKAGE (Boost REQUIRED COMPONENTS program_options)
-INCLUDE_DIRECTORIES (${Boost_INCLUDE_DIRS})
-APPEND (LIBRARIES ${Boost_LIBRARIES})
+#FIND_PACKAGE (Boost REQUIRED COMPONENTS program_options)
+#INCLUDE_DIRECTORIES (${Boost_INCLUDE_DIRS})
+APPEND (LIBRARIES "-lboost_program_options")#${Boost_LIBRARIES})
 
 FIND_PROGRAM (Flexc++ "flexc++")
 IF (NOT Flexc++)

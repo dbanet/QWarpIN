@@ -9,10 +9,13 @@
 #include <cstdlib>
 #include <cstdio>
 
-#include "timestamp.h"
-
 #define MAXPATHLEN 256
 #define DEFAULT_BUFFER_SIZE 1048576
+
+template<typename T>
+T implicit_cast(T t){
+	return t;
+}
 
 /*
  * Concatenate preprocessor tokens A and B without expanding macro definitions
