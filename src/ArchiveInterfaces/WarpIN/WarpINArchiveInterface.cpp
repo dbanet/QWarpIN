@@ -10,20 +10,19 @@ WarpINArchiveInterface::WarpINArchiveInterface(QFile *archive) :
 		qDebug(e.what());
 		return;
 	}
-	qDebug()<<"Minimum WarpIN version:"<<this->ArcHeader.wi_revision_needed;
-	qDebug()<<"Number of packages in the archive:"<<this->ArcHeader.sPackages;
-	qDebug()<<"Size of script:"<<this->ArcHeader.usScriptOrig<<"="<<this->scr.size();
-	qDebug()<<"Number of packages: "<<this->packHeadersList.length();
+	qDebug()<<"Minimum WarpIN version:"<<this->ArcHeader.wi_revision_needed<<endl;
+	qDebug()<<"Number of packages in the archive:"<<this->ArcHeader.sPackages<<endl;
+	qDebug()<<"Size of script:"<<this->ArcHeader.usScriptOrig<<"="<<this->scr.size()<<endl;
+	qDebug()<<"Number of packages: "<<this->packHeadersList.length()<<endl;
 	for(int i=0;i<this->packHeadersList.length();++i)
-		qDebug(QString(
-			QString()
-				+ "Package number "  + QString::number(i)                                  + ": "
-				+ "name -> \""       + this->packHeadersList[i]->name                      + "\"; "
-				+ "files -> \""      + QString::number(this->packHeadersList[i]->files)    + "\"; "
-				+ "number -> \""     + QString::number(this->packHeadersList[i]->number)   + "\"; "
-				+ "size orig. -> \"" + QString::number(this->packHeadersList[i]->origsize) + "\"; "
-				+ "size comp. -> \"" + QString::number(this->packHeadersList[i]->compsize) + "\"; "
-		).toStdString().c_str());
+		qDebug()<<qPrintable(QString()
+			+ "Package number "  + QString::number(i)                                  + ": "
+			+ "name -> \""       + this->packHeadersList[i]->name                      + "\"; "
+			+ "files -> \""      + QString::number(this->packHeadersList[i]->files)    + "\"; "
+			+ "number -> \""     + QString::number(this->packHeadersList[i]->number)   + "\"; "
+			+ "size orig. -> \"" + QString::number(this->packHeadersList[i]->origsize) + "\"; "
+			+ "size comp. -> \"" + QString::number(this->packHeadersList[i]->compsize) + "\"; "
+		)<<endl;
 }
 
 QString WarpINArchiveInterface::id() const{

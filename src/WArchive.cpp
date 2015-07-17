@@ -32,8 +32,8 @@ WArchive::WArchive(QFile *archiveFile,QObject *parent) :
 	if(interface.isNull())
 		throw E_WA_CannotFindSuitableArchiveInterface();
 
-	qDebug()<<"The archive is of type"<<this->interface->id();
-	qDebug()<<"The archive's name is"<<this->name();
+	qDebug()<<"The archive is of type"<<this->interface->id()<<endl;
+	qDebug()<<"The archive's name is"<<this->name()<<endl;
 }
 QString WArchive::name(){
 	return this->interface->arcName();

@@ -37,7 +37,7 @@ WInstallationInformation WScriptHost::install(){
 
 QScriptValue WScriptHost::log(QScriptContext *context,QScriptEngine */*engine*/){
 	if(context->argumentCount()==1)
-		qDebug()<<qPrintable(context->argument(0).toString());
+		qDebug()<<qPrintable(context->argument(0).toString())<<endl;
 	return QScriptValue();
 }
 

@@ -5,7 +5,7 @@
 #include "../WArchive.h"
 #include <QObject>
 #include <QtScript/QtScript>
-#define NGNEXC(engine) do{if(engine.hasUncaughtException()){qDebug()<<"Got script exception at " STRINGIZE(__FILE__) ":" STRINGIZE(__LINE__) ":" STRINGIZE(__PRETTY_FUNCTION__) "!"; qDebug()<<engine.uncaughtException().toString()<<" at script line number "<<engine.uncaughtExceptionLineNumber(); qDebug()<<"Exception backtrace: "<<engine.uncaughtExceptionBacktrace();}}while(false);
+#define NGNEXC(engine) do{if(engine.hasUncaughtException()){qDebug()<<"Got script exception at " STRINGIZE(__FILE__) ":" STRINGIZE(__LINE__) ":" STRINGIZE(__PRETTY_FUNCTION__) "!"<<endl; qDebug()<<engine.uncaughtException().toString()<<" at script line number "<<engine.uncaughtExceptionLineNumber(); qDebug()<<"Exception backtrace: "<<engine.uncaughtExceptionBacktrace()<<endl;}}while(false);
 
 class WScriptHost : public QObject
 {

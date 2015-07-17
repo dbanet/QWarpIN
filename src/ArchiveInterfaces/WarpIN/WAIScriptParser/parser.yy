@@ -2,8 +2,20 @@
 %token TATV_ALPHA TATV_CONFIGURE TATV_CONTAINER TATV_FAIL TATV_FLOW TATV_HTML TATV_NUMERIC_RANGE TATV_PATH TATV_PLAIN TATV_README TATV_TEXT TAT_BASE TAT_CLEARPROFILE TAT_CODEPAGE TAT_CONFIGSYS TAT_CREATEOBJECT TAT_DEEXECUTE TAT_EXECUTE TAT_EXPANDED TAT_EXTERNAL TAT_FIXED TAT_FORMAT TAT_EXTRACTFROMPCK TAT_INDEX TAT_KILLPROCESS TAT_LONGFILENAMES TAT_NAME TAT_NOBASE TAT_NODESELECT TAT_OS TAT_PACKAGEID TAT_REGISTERCLASS TAT_REPLACECLASS TAT_REQUIRES TAT_SELECT TAT_TARGET TAT_TITLE TAT_TYPE TAT_VERSION TAT_WRITEPROFILE T_BODY_BEGIN T_BODY_END T_EQUIV T_GROUP_BEGIN_CLOSE T_GROUP_BEGIN_OPEN T_GROUP_END T_HEAD_BEGIN T_HEAD_END T_MSG_BEGIN T_MSG_END T_NEXTBUTTON_BEGIN_CLOSE T_NEXTBUTTON_BEGIN_OPEN T_NEXTBUTTON_END T_NUMBER T_PAGE_BEGIN_CLOSE T_PAGE_BEGIN_OPEN T_PAGE_END T_PCK_BEGIN_CLOSE T_PCK_BEGIN_OPEN T_PCK_END T_README_BEGIN_CLOSE T_README_BEGIN_OPEN T_README_END T_REXX_OPEN T_REXX_BEGIN_CLOSE T_REXX_END T_STRING T_TEXT_BEGIN T_TEXT_END T_TITLE_BEGIN T_TITLE_END T_VARPROMPT_BEGIN_CLOSE T_VARPROMPT_BEGIN_OPEN T_VARPROMPT_END T_WARPIN_BEGIN_OPEN T_WARPIN_END T_WARPIN_BEGIN_CLOSE // T_COMMENT_BEGIN T_COMMENT_END
 %%
 
-wpdocument:
-	T_WARPIN_BEGIN_OPEN warpin_attr T_WARPIN_BEGIN_CLOSE T_HEAD_BEGIN head T_HEAD_END T_BODY_BEGIN body T_BODY_END T_WARPIN_END
+root:
+	T_WARPIN_BEGIN_OPEN warpin_attr T_WARPIN_BEGIN_CLOSE warpin T_WARPIN_END
+	|
+	T_WARPIN_BEGIN_OPEN T_WARPIN_BEGIN_CLOSE warpin T_WARPIN_END
+;
+
+warpin:
+	T_HEAD_BEGIN head T_HEAD_END T_BODY_BEGIN body T_BODY_END
+	|
+	T_HEAD_BEGIN head T_HEAD_END T_BODY_BEGIN T_BODY_END
+	|
+	T_HEAD_BEGIN T_HEAD_END T_BODY_BEGIN body T_BODY_END
+	|
+	T_HEAD_BEGIN T_HEAD_END T_BODY_BEGIN T_BODY_END
 ;
 
 warpin_attr:
@@ -179,23 +191,31 @@ text:
 ;
 
 readme:
-	T_README_BEGIN_OPEN readme_attr T_README_BEGIN_CLOSE T_STRING T_README_END
+	T_README_BEGIN_OPEN readme_attr T_README_BEGIN_CLOSE readme_cont T_README_END
 	|
 	T_README_BEGIN_OPEN readme_attr T_README_BEGIN_CLOSE T_README_END
 ;
 
 readme_attr:
-	TAT_EXTRACTFROMPCK T_EQUIV T_NUMBER readme_attr_format
+	readme_attr readme_attr_cont
 	|
-	readme_attr_format TAT_EXTRACTFROMPCK T_EQUIV T_NUMBER
+	readme_attr_cont
 ;
 
-readme_attr_format:
+readme_attr_cont:
 	TAT_FORMAT T_EQUIV TATV_PLAIN
 	|
 	TAT_FORMAT T_EQUIV TATV_FLOW
 	|
 	TAT_FORMAT T_EQUIV TATV_HTML
+	|
+	TAT_EXTRACTFROMPCK T_EQUIV T_NUMBER
+;
+
+readme_cont:
+	readme_cont T_STRING
+	|
+	T_STRING
 ;
 
 nextbutton:
@@ -211,17 +231,30 @@ pck:
 ;
 
 pck_attr:
-	pck_attr_opt pck_attr_packageid pck_attr_opt pck_attr_title pck_attr_opt pck_attr_target pck_attr_opt
-	|
-	pck_attr_opt pck_attr_packageid pck_attr_opt pck_attr_target pck_attr_opt pck_attr_title pck_attr_opt
-	|
-	pck_attr_opt pck_attr_title pck_attr_opt pck_attr_packageid pck_attr_opt pck_attr_target pck_attr_opt
-	|
-	pck_attr_opt pck_attr_title pck_attr_opt pck_attr_target pck_attr_opt pck_attr_packageid pck_attr_opt
-	|
-	pck_attr_opt pck_attr_target pck_attr_opt pck_attr_title pck_attr_opt pck_attr_packageid pck_attr_opt
-	|
-	pck_attr_opt pck_attr_target pck_attr_opt pck_attr_packageid pck_attr_opt pck_attr_title pck_attr_opt
+	pck_attr_opt pck_attr_index pck_attr_opt pck_attr_packageid pck_attr_opt pck_attr_title pck_attr_opt pck_attr_target pck_attr_opt |
+	pck_attr_opt pck_attr_index pck_attr_opt pck_attr_packageid pck_attr_opt pck_attr_target pck_attr_opt pck_attr_title pck_attr_opt |
+	pck_attr_opt pck_attr_index pck_attr_opt pck_attr_title pck_attr_opt pck_attr_packageid pck_attr_opt pck_attr_target pck_attr_opt |
+	pck_attr_opt pck_attr_index pck_attr_opt pck_attr_title pck_attr_opt pck_attr_target pck_attr_opt pck_attr_packageid pck_attr_opt |
+	pck_attr_opt pck_attr_index pck_attr_opt pck_attr_target pck_attr_opt pck_attr_packageid pck_attr_opt pck_attr_title pck_attr_opt |
+	pck_attr_opt pck_attr_index pck_attr_opt pck_attr_target pck_attr_opt pck_attr_title pck_attr_opt pck_attr_packageid pck_attr_opt |
+	pck_attr_opt pck_attr_packageid pck_attr_opt pck_attr_index pck_attr_opt pck_attr_title pck_attr_opt pck_attr_target pck_attr_opt |
+	pck_attr_opt pck_attr_packageid pck_attr_opt pck_attr_index pck_attr_opt pck_attr_target pck_attr_opt pck_attr_title pck_attr_opt |
+	pck_attr_opt pck_attr_packageid pck_attr_opt pck_attr_title pck_attr_opt pck_attr_index pck_attr_opt pck_attr_target pck_attr_opt |
+	pck_attr_opt pck_attr_packageid pck_attr_opt pck_attr_title pck_attr_opt pck_attr_target pck_attr_opt pck_attr_index pck_attr_opt |
+	pck_attr_opt pck_attr_packageid pck_attr_opt pck_attr_target pck_attr_opt pck_attr_index pck_attr_opt pck_attr_title pck_attr_opt |
+	pck_attr_opt pck_attr_packageid pck_attr_opt pck_attr_target pck_attr_opt pck_attr_title pck_attr_opt pck_attr_index pck_attr_opt |
+	pck_attr_opt pck_attr_title pck_attr_opt pck_attr_index pck_attr_opt pck_attr_packageid pck_attr_opt pck_attr_target pck_attr_opt |
+	pck_attr_opt pck_attr_title pck_attr_opt pck_attr_index pck_attr_opt pck_attr_target pck_attr_opt pck_attr_packageid pck_attr_opt |
+	pck_attr_opt pck_attr_title pck_attr_opt pck_attr_packageid pck_attr_opt pck_attr_index pck_attr_opt pck_attr_target pck_attr_opt |
+	pck_attr_opt pck_attr_title pck_attr_opt pck_attr_packageid pck_attr_opt pck_attr_target pck_attr_opt pck_attr_index pck_attr_opt |
+	pck_attr_opt pck_attr_title pck_attr_opt pck_attr_target pck_attr_opt pck_attr_index pck_attr_opt pck_attr_packageid pck_attr_opt |
+	pck_attr_opt pck_attr_title pck_attr_opt pck_attr_target pck_attr_opt pck_attr_packageid pck_attr_opt pck_attr_index pck_attr_opt |
+	pck_attr_opt pck_attr_target pck_attr_opt pck_attr_index pck_attr_opt pck_attr_packageid pck_attr_opt pck_attr_title pck_attr_opt |
+	pck_attr_opt pck_attr_target pck_attr_opt pck_attr_index pck_attr_opt pck_attr_title pck_attr_opt pck_attr_packageid pck_attr_opt |
+	pck_attr_opt pck_attr_target pck_attr_opt pck_attr_packageid pck_attr_opt pck_attr_index pck_attr_opt pck_attr_title pck_attr_opt |
+	pck_attr_opt pck_attr_target pck_attr_opt pck_attr_packageid pck_attr_opt pck_attr_title pck_attr_opt pck_attr_index pck_attr_opt |
+	pck_attr_opt pck_attr_target pck_attr_opt pck_attr_title pck_attr_opt pck_attr_index pck_attr_opt pck_attr_packageid pck_attr_opt |
+	pck_attr_opt pck_attr_target pck_attr_opt pck_attr_title pck_attr_opt pck_attr_packageid pck_attr_opt pck_attr_index pck_attr_opt
 ;
 
 pck_attr_opt:
@@ -234,6 +267,10 @@ pck_attr_opt_cont:
 	pck_attr_opt_cont pck_attr_cont
 	|
 	pck_attr_cont
+;
+
+pck_attr_index:
+	TAT_INDEX T_EQUIV T_NUMBER
 ;
 
 pck_attr_packageid:
